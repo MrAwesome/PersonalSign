@@ -30,7 +30,7 @@ const MUNI_STOPS = [
   '22|3301',
 ];
 
-const ROUTE_TO_STOP_NAME = [
+const MUNI_ROUTE_TO_STOP_NAME = [
   "J" => "Chch/Mrkt",
   "N" => "Chch/Dbce",
   "49" => "14th/Mish",
@@ -39,7 +39,7 @@ const ROUTE_TO_STOP_NAME = [
   "22" => "16th/Valn",
 ];
 
-const STOP_TO_WALK_TIME = [
+const MUNI_STOP_TO_WALK_TIME = [
   "Chch/Mrkt" => 10,
   "Chch/Dbce" => 12,
   "14th/Mish" => 5,
@@ -52,6 +52,19 @@ const BART_WALK_TIME = 10;
 function isAssoc(array $arr) {
     if (array() === $arr) return false;
     return array_keys($arr) !== range(0, count($arr) - 1);
+}
+
+function getValidMinutesString($walk_time, $minutesArr) {
+    return join(", ", array_filter(array_map(function($minutes) use ($walk_time) {
+      if ((int)$minutes > $walk_time) {
+        return "<span class='attainable-time'>$minutes</span>";
+      } else {
+        return "";
+        //return "<span class='unattainable-time'>$minutes</span>";
+      }
+    }, $minutesArr),
+    function ($val) { return $val !== ""; }
+    ));
 }
 
 function getAqiData() {
@@ -133,7 +146,7 @@ function getWeatherData() {
   [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return (int) $str; },
      [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
 
-  return "<h2>Current: $currentTemp <i>(Min: $tempMin / Max: $tempMax)</i>";
+  return "<h2>Temp: $currentTemp <i>($tempMin/$tempMax)</i>";
 }
 
 function getBARTData() {
@@ -199,17 +212,10 @@ function getBARTData() {
   foreach ($valid_trips as $dest_name => $dest_info) {
     ['minutes' => $minutesArr, 'direction' => $direction] = $dest_info;
 
-    if (count($minutesArr) > 0) {
-      sort($minutesArr);
+    sort($minutesArr);
+    $minutesStr = getValidMinutesString(BART_WALK_TIME, $minutesArr);
 
-      $minutesStr = join(", ", array_map(function($minutes) {
-        if ((int)$minutes > BART_WALK_TIME) {
-          return "<span class='attainable-time'>$minutes</span>";
-        } else {
-          return "<span class='unattainable-time'>$minutes</span>";
-        }
-      }, $minutesArr));
-
+    if (strlen($minutesStr) > 0) {
       $table_contents .= "<tr>";
       $table_contents .= "<td>$direction</td>";
       $table_contents .= "<td>$dest_name</td>";
@@ -257,7 +263,7 @@ function getMuniData() {
       continue;
     }
     $route_tag = $route['routeTag'];
-    $stop = ROUTE_TO_STOP_NAME[$route_tag];
+    $stop = MUNI_ROUTE_TO_STOP_NAME[$route_tag];
 
     $alldirections = $route['direction'];
     if (!isAssoc($alldirections)) {
@@ -278,18 +284,11 @@ function getMuniData() {
 
   $table_contents = "";
   foreach ($valid_trips as [$stop, $dest_name, $route_tag, $minutesArr]) {
-    if (count($minutesArr) > 0) {
+    sort($minutesArr);
+    $minutesStr = getValidMinutesString(MUNI_STOP_TO_WALK_TIME[$stop] , $minutesArr);
+
+    if (strlen($minutesStr) > 0) {
       $direction_name = explode(' ', $dest_name, 2)[0];
-      sort($minutesArr);
-
-
-      $minutesStr = join(", ", array_map(function($minutes) use ($stop) {
-        if ((int)$minutes > STOP_TO_WALK_TIME[$stop]) {
-          return "<span class='attainable-time'>$minutes</span>";
-        } else {
-          return "<span class='unattainable-time'>$minutes</span>";
-        }
-      }, $minutesArr));
 
       $table_contents .= "<tr>";
       $table_contents .= "<td>$stop</td>";

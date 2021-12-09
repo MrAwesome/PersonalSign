@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 const AQICN_BASE_URL = 'http://api.waqi.info/feed/@3900/';
 
-const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5/onecall?lat=37.76829242812971&lon=-122.42288265877234&exclude=minutely,hourly,daily&units=imperial';
+const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5/onecall?lat=37.76829242812971&lon=-122.42288265877234&units=imperial';
 
 const BART_BASE_URL = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig=16TH&json=y';
 
@@ -111,9 +111,29 @@ function getWeatherData() {
 
   $current = $o['current'];
 
-  $temp = (int) $current['temp'];
+  $currentTemp = (int) $current['temp'];
 
-  return "<h2>Temp: $temp</h2>";
+  // TODO: this should only be generated once an hour, and then read from here? or just do it on every 60th minute, touch a flag file, whatever
+  //$hourly = $o['hourly'];
+  //$imgs = join("\n", array_map(function ($hourInfo) {
+  //return '<img class="lilmage" src="http://openweathermap.org/img/wn/'.$hourInfo['weather'][0]['icon'].'@2x.png" alt="" width="20">';
+  //}, $hourly));
+  //
+
+  $today = $o['daily'][0];
+  [
+    "day" => $tempDay,
+    "min" => $tempMin,
+    "max" => $tempMax,
+    "night" => $tempNight,
+    "eve" => $tempEve,
+    "morn" => $tempMorn,
+  ] = $today['temp'];
+
+  [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return (int) $str; },
+     [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
+
+  return "<h2>Current: $currentTemp <i>(Min: $tempMin / Max: $tempMax)</i>";
 }
 
 function getBARTData() {
@@ -132,7 +152,6 @@ function getBARTData() {
   fclose($fp);
 
   $o = json_decode($resp, true);
-
 
   if (!array_key_exists('root', $o) //|| array_key_exists('error', $o['root']['message'])
   ) {
@@ -156,6 +175,8 @@ function getBARTData() {
     $dest_name = $dest["destination"];
 
     $estimates = $dest["estimate"];
+
+    // Always the same, so just use the last one
     foreach ($estimates as $est) {
       $minutes = $est["minutes"];
       if ($minutes === "Leaving") {
@@ -163,26 +184,35 @@ function getBARTData() {
       }
       if (!array_key_exists($dest_name, $valid_trips)) {
         $valid_trips[$dest_name] = [];
+        $valid_trips[$dest_name]['minutes'] = [];
+        $valid_trips[$dest_name]['minutes'] = [];
+        $valid_trips[$dest_name]['direction'] = $est['direction'];
       }
-      array_push($valid_trips[$dest_name], $minutes);
+      array_push($valid_trips[$dest_name]['minutes'], $minutes);
     }
   }
 
-  foreach ($valid_trips as $dest_name => $minutesArr) {
+  uasort($valid_trips, function($a, $b) {
+    return $a['direction'] > $b['direction'];
+  });
+
+  foreach ($valid_trips as $dest_name => $dest_info) {
+    ['minutes' => $minutesArr, 'direction' => $direction] = $dest_info;
+
     if (count($minutesArr) > 0) {
       sort($minutesArr);
 
       $minutesStr = join(", ", array_map(function($minutes) {
         if ((int)$minutes > BART_WALK_TIME) {
-          return "<b>$minutes</b>";
+          return "<span class='attainable-time'>$minutes</span>";
         } else {
-          return $minutes;
+          return "<span class='unattainable-time'>$minutes</span>";
         }
       }, $minutesArr));
 
       $table_contents .= "<tr>";
+      $table_contents .= "<td>$direction</td>";
       $table_contents .= "<td>$dest_name</td>";
-
       $table_contents .= "<td>$minutesStr</td>";
       $table_contents .= "</tr>\n";
     }
@@ -191,6 +221,7 @@ function getBARTData() {
   $bart_table_header = '
   <table border="1">
   <tr>
+    <th>Dir</th>
     <th>Dest</th>
     <th>Min</th>
   </tr>';
@@ -228,19 +259,17 @@ function getMuniData() {
     $route_tag = $route['routeTag'];
     $stop = ROUTE_TO_STOP_NAME[$route_tag];
 
-    $walk_minutes = STOP_TO_WALK_TIME[$stop];
-
     $alldirections = $route['direction'];
     if (!isAssoc($alldirections)) {
       foreach ($alldirections as $direction) {
-        $minutes = getMuniPredictionMinutes($direction, $walk_minutes);
+        $minutes = getMuniPredictionMinutes($direction);
         $dest_name = $direction['title'];
         array_push($valid_trips, [$stop, $dest_name, $route_tag, $minutes]);
       }
     } else {
         $direction = $alldirections;
         $dest_name = $direction['title'];
-        $minutes = getMuniPredictionMinutes($direction, $walk_minutes);
+        $minutes = getMuniPredictionMinutes($direction);
         array_push($valid_trips, [$stop, $dest_name, $route_tag, $minutes]);
     }
   }
@@ -256,9 +285,9 @@ function getMuniData() {
 
       $minutesStr = join(", ", array_map(function($minutes) use ($stop) {
         if ((int)$minutes > STOP_TO_WALK_TIME[$stop]) {
-          return "<b>$minutes</b>";
+          return "<span class='attainable-time'>$minutes</span>";
         } else {
-          return $minutes;
+          return "<span class='unattainable-time'>$minutes</span>";
         }
       }, $minutesArr));
 
@@ -285,24 +314,18 @@ function getMuniData() {
   return "$muni_table_header $table_contents $muni_table_footer";
 }
 
-function getMuniPredictionMinutes($direction, $walk_minutes) {
+function getMuniPredictionMinutes($direction) {
   $allMinutes = [];
   $predictions = $direction['prediction'];
 
   if (!isAssoc($predictions)) {
     foreach ($predictions as $prediction) {
       $minutes = $prediction['minutes'];
-      if ($minutes > $walk_minutes) {
-        $minutes = "<b>$minutes</b>";
-      }
       array_push($allMinutes, $minutes);
     }
   } else {
       $prediction = $predictions;
       $minutes = $prediction['minutes'];
-      if ($minutes > $walk_minutes) {
-        $minutes = "<b>$minutes</b>";
-      }
       array_push($allMinutes, $minutes);
   }
 
@@ -320,7 +343,7 @@ print '
 <head>
   <title>The B</title>
   <script>
-    window.setInterval("refresh()", 10000);
+    window.setInterval("refresh()", 30000);
 
     function refresh() {
         window.location.reload();
@@ -339,6 +362,20 @@ print '
 
     table th {
       border: 1px solid black;
+    }
+
+    .lilmage {
+      border: 1px solid black;
+      background: lightgrey;
+    }
+
+    .attainable-time {
+      font-weight: bold;
+    }
+
+    .unattainable-time {
+      font-style: italic;
+      color: #888888;
     }
   </style>
 </head>

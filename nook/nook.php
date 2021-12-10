@@ -176,7 +176,7 @@ function getBARTData() {
      $o['root']['message'] !== '' &&
       array_key_exists('warning', $o['root']['message']) &&
       $o['root']['message']['warning'] === "No data matched your criteria.") {
-    return '(No BART trains found.)';
+    return '(No BART trains found.)<br />';
   }
 
   $etd = $o['root']['station'][0]['etd'];
@@ -331,10 +331,20 @@ function getMuniPredictionMinutes($direction) {
   return $allMinutes;
 }
 
+function getEmails() {
+  $output = "<table><tr><th>Subject</th></tr>";
+  $lawl = [];
+  exec("node ../getemails/getemails.js", $lawl);
+  $output .= join("\n", $lawl);
+  $output .= "</table>";
+  return $output;
+}
+
 $wd = getWeatherData();
 $cnaqi = getAqiData();
 $bart = getBARTData();
 $muni = getMuniData();
+$emails = getEmails();
 
 print "<!DOCTYPE html>\n";
 //<meta http-equiv="refresh" content="10">
@@ -352,24 +362,26 @@ print '
 
     body {
       background: black;
-      color: grey;
+      color: white;
     }
     table{
       border-collapse: collapse;
-      border: 1px solid #444444;
+      border: 1px solid #333333;
       border-radius: 5px;
     }
 
     table td {
-      border: 1px solid #444444;
+      border: 1px solid #333333;
+      padding-left: 5px;
+      padding-right: 5px;
     }
 
     table th {
-      border: 1px solid #444444;
+      border: 1px solid #333333;
     }
 
     .lilmage {
-      border: 1px solid #444444;
+      border: 1px solid #333333;
       background: lightgrey;
     }
 
@@ -393,6 +405,8 @@ print "\n";
 print $bart;
 print "\n<br />\n";
 print $muni;
+print "\n<br />\n";
+print $emails;
 print "\n";
 
 print "</body>";

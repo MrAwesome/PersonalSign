@@ -349,22 +349,27 @@ print '
     }
     </script>
   <style>
+
+    body {
+      background: black;
+      color: grey;
+    }
     table{
       border-collapse: collapse;
-      border: 1px solid black;
+      border: 1px solid #444444;
       border-radius: 5px;
     }
 
     table td {
-      border: 1px solid black;
+      border: 1px solid #444444;
     }
 
     table th {
-      border: 1px solid black;
+      border: 1px solid #444444;
     }
 
     .lilmage {
-      border: 1px solid black;
+      border: 1px solid #444444;
       background: lightgrey;
     }
 

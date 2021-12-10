@@ -12,6 +12,6 @@ const EMAIL_FILE = path.join(__dirname, ".maildropcc_email_addr");
   for (const mail of mails) {
     const { id, from, to, subject, date, body, html } = mail;
 
-    console.log(`<td>${subject}<td>`);
+    console.log(`<tr><td>${subject}</td></tr>`);
   }
 })()

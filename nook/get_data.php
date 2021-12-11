@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 const AQICN_BASE_URL = 'http://api.waqi.info/feed/@3900/';
@@ -7,7 +8,7 @@ const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5/onecall
 
 const BART_BASE_URL = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig=16TH&json=y';
 
-const MUNI_BASE_URL = 'https://retro.umoiq.com/service/publicJSONFeed'.
+const MUNI_BASE_URL = 'https://retro.umoiq.com/service/publicJSONFeed' .
   '?a=sf-muni&command=predictionsForMultiStops';
 
 const MUNI_STOPS = [
@@ -44,13 +45,16 @@ const MUNI_STOP_TO_WALK_TIME = [
 
 const BART_WALK_TIME = 10;
 
-function isAssoc(array $arr) {
-    if (array() === $arr) return false;
-    return array_keys($arr) !== range(0, count($arr) - 1);
+function isAssoc(array $arr)
+{
+  if (array() === $arr) return false;
+  return array_keys($arr) !== range(0, count($arr) - 1);
 }
 
-function getValidMinutesString($walk_time, $minutesArr) {
-    return join(", ", array_filter(array_map(function($minutes) use ($walk_time) {
+function getValidMinutesString($walk_time, $minutesArr)
+{
+  return join(", ", array_filter(
+    array_map(function ($minutes) use ($walk_time) {
       if ((int)$minutes > $walk_time) {
         return "<span class='attainable-time'>$minutes</span>";
       } else {
@@ -58,17 +62,28 @@ function getValidMinutesString($walk_time, $minutesArr) {
         //return "<span class='unattainable-time'>$minutes</span>";
       }
     }, $minutesArr),
-    function ($val) { return $val !== ""; }
-    ));
+    function ($val) {
+      return $val !== "";
+    }
+  ));
 }
 
-function getAqiData() {
-  $apiKey=rtrim(file_get_contents('.aqicn_api_key'));
+function getDateFromTimeStamp($timestamp, $timezone) {
+    $dt = new DateTime();
+    $dt->setTimestamp($timestamp);
+    $dt->setTimezone(new DateTimeZone($timezone));
+    $datetime = $dt->format('M d');
+    return $datetime;
+}
+
+function getAqiData()
+{
+  $apiKey = rtrim(file_get_contents('.aqicn_api_key'));
 
   $requestUri = sprintf(
-      '%s?token=%s',
-      AQICN_BASE_URL,
-      $apiKey
+    '%s?token=%s',
+    AQICN_BASE_URL,
+    $apiKey
   );
 
   $fp = fopen($requestUri, 'r');
@@ -95,13 +110,14 @@ function getAqiData() {
   return "<h2>AQI: $aqi</h2>";
 }
 
-function getWeatherData() {
-  $apiKey=rtrim(file_get_contents('.openweathermap_api_key'));
+function getWeatherData()
+{
+  $apiKey = rtrim(file_get_contents('.openweathermap_api_key'));
 
   $requestUri = sprintf(
-      '%s&appid=%s',
-      OPENWEATHERMAP_BASE_URL,
-      $apiKey
+    '%s&appid=%s',
+    OPENWEATHERMAP_BASE_URL,
+    $apiKey
   );
 
   $fp = fopen($requestUri, 'r');
@@ -113,12 +129,32 @@ function getWeatherData() {
   $o = json_decode($resp, true);
 
 
-  if (!(array_key_exists('timezone', $o) && $o['timezone'] === 'America/Los_Angeles')) {
+  if (!(array_key_exists("current", $o))) {
     return "Error in openweathermap!\n";
   }
 
-  $current = $o['current'];
+  $timezone = array_key_exists("timezone", $o) ? $o["timezone"] : 'America/Los_Angeles';
+  $alertStr = "";
+  if (array_key_exists("alerts", $o) && count($o["alerts"]) > 0) {
+    $alerts = $o['alerts'];
 
+    $alertStr .= "<table>\n";
+    $alertStr .= "<tr> <th>Weather Alert</th> <th>Start</th> <th>End</th> </tr>\n";
+    $alertStr .= join("\n", array_map(function ($alert) use ($timezone) {
+
+
+      $startTime = $alert["start"];
+      $endTime = $alert["end"];
+
+      $startTimeStr = getDateFromTimeStamp($startTime, $timezone);
+      $endTimeStr = getDateFromTimeStamp($endTime, $timezone);
+      $title = $alert["event"];
+      return "<tr><td>$title</td><td>$startTimeStr</td><td>$endTimeStr</td></tr>";
+    }, $alerts));
+    $alertStr .= "</table><br />\n";
+  }
+
+  $current = $o['current'];
   $currentTemp = (int) $current['temp'];
 
   // TODO: this should only be generated once an hour, and then read from here? or just do it on every 60th minute, touch a flag file, whatever
@@ -130,27 +166,28 @@ function getWeatherData() {
 
   $today = $o['daily'][0];
   [
-    "day" => $tempDay,
+    //"day" => $tempDay,
     "min" => $tempMin,
     "max" => $tempMax,
-    "night" => $tempNight,
-    "eve" => $tempEve,
-    "morn" => $tempMorn,
+    //"night" => $tempNight,
+    //"eve" => $tempEve,
+    //"morn" => $tempMorn,
   ] = $today['temp'];
 
-  [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return (int) $str; },
-     [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
+  //[$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return (int) $str; },
+  //[$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
 
-  return "<h2>Temp: $currentTemp <i>($tempMin/$tempMax)</i>";
+  return "<h2>Temp: $currentTemp <i>($tempMin/$tempMax)</i>\n$alertStr\n";
 }
 
-function getBARTData() {
-  $apiKey=rtrim(file_get_contents('.bart_api_key'));
+function getBARTData()
+{
+  $apiKey = rtrim(file_get_contents('.bart_api_key'));
 
   $requestUri = sprintf(
-      '%s&key=%s',
-      BART_BASE_URL,
-      $apiKey
+    '%s&key=%s',
+    BART_BASE_URL,
+    $apiKey
   );
 
   $fp = fopen($requestUri, 'r');
@@ -167,10 +204,12 @@ function getBARTData() {
     return "Error in BART! \n";
   }
 
-  if (array_key_exists('message', $o['root']) &&
-     $o['root']['message'] !== '' &&
-      array_key_exists('warning', $o['root']['message']) &&
-      $o['root']['message']['warning'] === "No data matched your criteria.") {
+  if (
+    array_key_exists('message', $o['root']) &&
+    $o['root']['message'] !== '' &&
+    array_key_exists('warning', $o['root']['message']) &&
+    $o['root']['message']['warning'] === "No data matched your criteria."
+  ) {
     return '(No BART trains found.)<br />';
   }
 
@@ -200,7 +239,7 @@ function getBARTData() {
     }
   }
 
-  uasort($valid_trips, function($a, $b) {
+  uasort($valid_trips, function ($a, $b) {
     return $a['direction'] > $b['direction'];
   });
 
@@ -232,8 +271,9 @@ function getBARTData() {
 }
 
 
-function getMuniData() {
-  $makeStop = function($pair) {
+function getMuniData()
+{
+  $makeStop = function ($pair) {
     return "&stops=$pair";
   };
 
@@ -268,10 +308,10 @@ function getMuniData() {
         array_push($valid_trips, [$stop, $dest_name, $route_tag, $minutes]);
       }
     } else {
-        $direction = $alldirections;
-        $dest_name = $direction['title'];
-        $minutes = getMuniPredictionMinutes($direction);
-        array_push($valid_trips, [$stop, $dest_name, $route_tag, $minutes]);
+      $direction = $alldirections;
+      $dest_name = $direction['title'];
+      $minutes = getMuniPredictionMinutes($direction);
+      array_push($valid_trips, [$stop, $dest_name, $route_tag, $minutes]);
     }
   }
 
@@ -280,7 +320,7 @@ function getMuniData() {
   $table_contents = "";
   foreach ($valid_trips as [$stop, $dest_name, $route_tag, $minutesArr]) {
     sort($minutesArr);
-    $minutesStr = getValidMinutesString(MUNI_STOP_TO_WALK_TIME[$stop] , $minutesArr);
+    $minutesStr = getValidMinutesString(MUNI_STOP_TO_WALK_TIME[$stop], $minutesArr);
 
     if (strlen($minutesStr) > 0) {
       $direction_name = explode(' ', $dest_name, 2)[0];
@@ -308,7 +348,8 @@ function getMuniData() {
   return "$muni_table_header $table_contents $muni_table_footer";
 }
 
-function getMuniPredictionMinutes($direction) {
+function getMuniPredictionMinutes($direction)
+{
   $allMinutes = [];
   $predictions = $direction['prediction'];
 
@@ -318,15 +359,16 @@ function getMuniPredictionMinutes($direction) {
       array_push($allMinutes, $minutes);
     }
   } else {
-      $prediction = $predictions;
-      $minutes = $prediction['minutes'];
-      array_push($allMinutes, $minutes);
+    $prediction = $predictions;
+    $minutes = $prediction['minutes'];
+    array_push($allMinutes, $minutes);
   }
 
   return $allMinutes;
 }
 
-function getEmails() {
+function getEmails()
+{
   $output = "<table><tr><th>Subject</th></tr>";
   $lawl = [];
   exec("node ../getemails/getemails.js", $lawl);
@@ -336,7 +378,8 @@ function getEmails() {
 }
 
 
-function printAllDataSync($iteration) {
+function printAllDataSync($iteration)
+{
   static $weathercache = "";
   static $aqicache = "";
   static $emailcache = "";
@@ -349,7 +392,6 @@ function printAllDataSync($iteration) {
 
     $cnaqi = getAqiData();
     $aqicache = $cnaqi;
-
   } else {
     fwrite(STDERR, "u");
 

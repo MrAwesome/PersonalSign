@@ -133,6 +133,7 @@ function getWeatherData()
     return "Error in openweathermap!\n";
   }
 
+  // Weather Alerts
   $timezone = array_key_exists("timezone", $o) ? $o["timezone"] : 'America/Los_Angeles';
   $alertStr = "";
   if (array_key_exists("alerts", $o) && count($o["alerts"]) > 0) {
@@ -166,18 +167,27 @@ function getWeatherData()
 
   $today = $o['daily'][0];
   [
-    //"day" => $tempDay,
+    "day" => $tempDay,
     "min" => $tempMin,
     "max" => $tempMax,
-    //"night" => $tempNight,
-    //"eve" => $tempEve,
-    //"morn" => $tempMorn,
+    "night" => $tempNight,
+    "eve" => $tempEve,
+    "morn" => $tempMorn,
   ] = $today['temp'];
 
-  //[$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return (int) $str; },
-  //[$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
+  // Don't bother displaying floats of temperatures
+  [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return round($str); },
+    [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
 
-  return "<h2>Temp: $currentTemp <i>($tempMin/$tempMax)</i>\n$alertStr\n";
+  // UV Index
+  $uvNow = round($current["uvi"]);
+  $uvToday = round($today["uvi"]);
+
+
+  return "
+  <h2>Temp: $currentTemp <i> ($tempMin/$tempMax)</i></h2>
+  <div class='uvi'>UV Index: $uvNow (Today: $uvToday)</div>
+  \n$alertStr\n";
 }
 
 function getBARTData()

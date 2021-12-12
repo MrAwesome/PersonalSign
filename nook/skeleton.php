@@ -47,20 +47,16 @@
       color: #888888;
     }
 
-    .uvi {
-      padding: 2px;
-      border: 1px solid #333333;
+    .prefix {
       display: inline-block;
+      padding-right: 8px;
+      font-style: italic;
+      font-size: 16px;
     }
 
-    .aqi {
+    .uvi, .aqi, .temperature {
+      font-size: 30px;
       padding: 2px;
-      border: 1px solid #333333;
-      display: inline-block;
-    }
-    .temperature {
-      padding: 2px;
-      border: 1px solid #333333;
       display: inline-block;
     }
 
@@ -74,6 +70,9 @@
 
     .datetime {
       font-size: 48px;
+      border-bottom: 1px solid #666666;
+      margin-bottom: 3px;
+      display: inline-block;
     }
 
   </style>

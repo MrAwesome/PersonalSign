@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+const MUH_TIMEZONE = 'America/Los_Angeles';
+
 const AQICN_BASE_URL = 'http://api.waqi.info/feed/@3900/';
 
 const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5/onecall?lat=37.76829242812971&lon=-122.42288265877234&units=imperial';
@@ -82,8 +84,9 @@ function getDateFromTimeStamp($timestamp, $timezone)
 function getDateTime()
 {
   $dt = new DateTime();
-  $datetime = $dt->format('M d h:m');
-  return "<div class='datetime'>$datetime</div>";
+  $dt->setTimezone(new DateTimeZone(MUH_TIMEZONE));
+  $datetime = $dt->format('M d H:m');
+  return "<div class='datetime-container'><div class='datetime'>$datetime</div></div>";
 }
 
 function getAqiData()
@@ -117,7 +120,7 @@ function getAqiData()
   //$dominantpolval = $iaqi_info[$dominantpolname]["v"];
   //$dominantpolname    $dominantpolval \n";
 
-  return "<div class='aqi'>AQI: $aqi</div>";
+  return "<div id='aqi-container'><div class='prefix'>AQI:</div><div class='aqi'>$aqi</div></div>";
 }
 
 function getWeatherData()
@@ -144,7 +147,7 @@ function getWeatherData()
   }
 
   // Weather Alerts
-  $timezone = array_key_exists("timezone", $o) ? $o["timezone"] : 'America/Los_Angeles';
+  $timezone = array_key_exists("timezone", $o) ? $o["timezone"] : MUH_TIMEZONE;
   $alertStr = "";
   if (array_key_exists("alerts", $o) && count($o["alerts"]) > 0) {
     $alerts = $o['alerts'];
@@ -198,9 +201,10 @@ function getWeatherData()
   $uvToday = round($today["uvi"]);
 
 
+  // TODO: fix today display
   return "
-  <div class='temperature'>Temp: $currentTemp <i> ($tempMin/$tempMax)</i></div>
-  <div class='uvi'>UV Index: $uvNow (Today: $uvToday)</div>
+  <div class='temperature-container'><div class='prefix'>Temp:</div><div class='temperature'>$currentTemp <i> ($tempMin/$tempMax)</i></div></div>
+  <div class='uvi-container'><div class='prefix'>UV Index:</div><div class='uvi'>$uvNow <div class='prefix'>Today:</div> $uvToday</div></div>
   \n$alertStr\n";
 }
 

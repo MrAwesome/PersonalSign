@@ -11,6 +11,8 @@ const BART_BASE_URL = 'http://api.bart.gov/api/etd.aspx?cmd=etd&orig=16TH&json=y
 const MUNI_BASE_URL = 'https://retro.umoiq.com/service/publicJSONFeed' .
   '?a=sf-muni&command=predictionsForMultiStops';
 
+const MAILDROP_URL_PREFIX = "https://api.maildrop.cc/v2/mailbox/";
+
 const MUNI_STOPS = [
   'J|8059',
   'J|7073',
@@ -68,12 +70,20 @@ function getValidMinutesString($walk_time, $minutesArr)
   ));
 }
 
-function getDateFromTimeStamp($timestamp, $timezone) {
-    $dt = new DateTime();
-    $dt->setTimestamp($timestamp);
-    $dt->setTimezone(new DateTimeZone($timezone));
-    $datetime = $dt->format('M d');
-    return $datetime;
+function getDateFromTimeStamp($timestamp, $timezone)
+{
+  $dt = new DateTime();
+  $dt->setTimestamp($timestamp);
+  $dt->setTimezone(new DateTimeZone($timezone));
+  $datetime = $dt->format('M d');
+  return $datetime;
+}
+
+function getDateTime()
+{
+  $dt = new DateTime();
+  $datetime = $dt->format('M d h:m');
+  return "<div class='datetime'>$datetime</div>";
 }
 
 function getAqiData()
@@ -107,7 +117,7 @@ function getAqiData()
   //$dominantpolval = $iaqi_info[$dominantpolname]["v"];
   //$dominantpolname    $dominantpolval \n";
 
-  return "<h2>AQI: $aqi</h2>";
+  return "<div class='aqi'>AQI: $aqi</div>";
 }
 
 function getWeatherData()
@@ -139,7 +149,7 @@ function getWeatherData()
   if (array_key_exists("alerts", $o) && count($o["alerts"]) > 0) {
     $alerts = $o['alerts'];
 
-    $alertStr .= "<table>\n";
+    $alertStr .= "<div class='weathertable'><table>\n";
     $alertStr .= "<tr> <th>Weather Alert</th> <th>Start</th> <th>End</th> </tr>\n";
     $alertStr .= join("\n", array_map(function ($alert) use ($timezone) {
 
@@ -152,7 +162,7 @@ function getWeatherData()
       $title = $alert["event"];
       return "<tr><td>$title</td><td>$startTimeStr</td><td>$endTimeStr</td></tr>";
     }, $alerts));
-    $alertStr .= "</table><br />\n";
+    $alertStr .= "</table></div>\n";
   }
 
   $current = $o['current'];
@@ -176,8 +186,12 @@ function getWeatherData()
   ] = $today['temp'];
 
   // Don't bother displaying floats of temperatures
-  [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(function($str) { return round($str); },
-    [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]);
+  [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn] = array_map(
+    function ($str) {
+      return round($str);
+    },
+    [$tempDay, $tempMin, $tempMax, $tempNight, $tempEve, $tempMorn]
+  );
 
   // UV Index
   $uvNow = round($current["uvi"]);
@@ -185,7 +199,7 @@ function getWeatherData()
 
 
   return "
-  <h2>Temp: $currentTemp <i> ($tempMin/$tempMax)</i></h2>
+  <div class='temperature'>Temp: $currentTemp <i> ($tempMin/$tempMax)</i></div>
   <div class='uvi'>UV Index: $uvNow (Today: $uvToday)</div>
   \n$alertStr\n";
 }
@@ -220,7 +234,8 @@ function getBARTData()
     array_key_exists('warning', $o['root']['message']) &&
     $o['root']['message']['warning'] === "No data matched your criteria."
   ) {
-    return '(No BART trains found.)<br />';
+    return '';
+    //return '<div class="nobart">No BART trains found.</div>';
   }
 
   $etd = $o['root']['station'][0]['etd'];
@@ -277,7 +292,7 @@ function getBARTData()
   </tr>';
 
   $bart_table_footer = '</table>';
-  return "$bart_table_header $table_contents $bart_table_footer";
+  return "<div class='barttable'>$bart_table_header $table_contents $bart_table_footer</div>";
 }
 
 
@@ -355,7 +370,7 @@ function getMuniData()
 
   $muni_table_footer = '</table>';
 
-  return "$muni_table_header $table_contents $muni_table_footer";
+  return "<div class='munitable'>$muni_table_header $table_contents $muni_table_footer</div>";
 }
 
 function getMuniPredictionMinutes($direction)
@@ -379,11 +394,36 @@ function getMuniPredictionMinutes($direction)
 
 function getEmails()
 {
-  $output = "<table><tr><th>Subject</th></tr>";
-  $lawl = [];
-  exec("node ../getemails/getemails.js", $lawl);
-  $output .= join("\n", $lawl);
-  $output .= "</table>";
+  $maildropEmailAddr = rtrim(file_get_contents('.maildropcc_email_addr'));
+  $maildropApiUrl = MAILDROP_URL_PREFIX . $maildropEmailAddr;
+
+  $header = "User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:94.0) Gecko/20100101 Firefox/94.0
+x-api-key: QM8VTHrLR2JloKTJMZ3N6Qa93FVsx8LapKCzEjui
+Connection: close";
+
+  $opts =  ['http' =>
+  [
+    "referrer" => "https://maildrop.cc/",
+    "header" => $header,
+    "method" => "GET",
+    "mode" => "cors"
+  ]];
+
+  $context = stream_context_create($opts);
+  $stream = fopen($maildropApiUrl, 'r', false, $context);
+  $resp = stream_get_contents($stream);
+  $o = json_decode($resp, true);
+
+  if (!array_key_exists('messages', $o)) {
+    return 'Error in maildrop!\n';
+  }
+
+  $output = "<div class='alerttable'><table><tr><th>Alert</th></tr>";
+  foreach ($o['messages'] as $message) {
+    $subject = $message['subject'];
+    $output .= "<tr><td>$subject</td></tr>";
+  }
+  $output .= "</table></div>";
   return $output;
 }
 
@@ -419,14 +459,14 @@ function printAllDataSync($iteration)
   $bart = getBARTData();
   $muni = getMuniData();
 
-  print $wd;
-  print "\n";
-  print $cnaqi;
-  print "\n";
-  print $bart;
-  print "\n<br />\n";
-  print $muni;
-  print "\n<br />\n";
-  print $emails;
-  print "\n";
+  $datetime = getDateTime();
+
+  print "
+$datetime
+$emails
+$cnaqi
+$wd
+$bart
+$muni
+";
 }

@@ -5,7 +5,7 @@
 <head>
   <title>The B</title>
   <script>
-    window.setInterval("refresh()", 30000);
+    window.setInterval("refresh()", 60000);
 
     function refresh() {
         window.location.reload();
@@ -46,6 +46,36 @@
       font-style: italic;
       color: #888888;
     }
+
+    .uvi {
+      padding: 2px;
+      border: 1px solid #333333;
+      display: inline-block;
+    }
+
+    .aqi {
+      padding: 2px;
+      border: 1px solid #333333;
+      display: inline-block;
+    }
+    .temperature {
+      padding: 2px;
+      border: 1px solid #333333;
+      display: inline-block;
+    }
+
+    .alerttable {
+      padding-bottom: 15px;
+    }
+
+    .weathertable, .munitable, .barttable {
+      padding-top: 8px;
+    }
+
+    .datetime {
+      font-size: 48px;
+    }
+
   </style>
 </head>
 <body>

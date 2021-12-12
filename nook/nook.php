@@ -38,6 +38,7 @@ function getPageContents($iteration): string {
     $contents = getPageContents($i);
     $file = fopen($filename, "w");
     fwrite($file, $contents);
+    fwrite(STDERR, "g");
     sleep(60);
     $i++;
   }

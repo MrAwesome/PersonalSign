@@ -418,8 +418,12 @@ Connection: close";
     return 'Error in maildrop!\n';
   }
 
+  $messages = $o['messages'];
+  if (count($messages) < 1) {
+    return '';
+  }
   $output = "<div class='alerttable'><table><tr><th>Alert</th></tr>";
-  foreach ($o['messages'] as $message) {
+  foreach ($messages as $message) {
     $subject = $message['subject'];
     $output .= "<tr><td>$subject</td></tr>";
   }

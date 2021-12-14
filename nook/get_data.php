@@ -85,7 +85,7 @@ function getDateTime()
 {
   $dt = new DateTime();
   $dt->setTimezone(new DateTimeZone(MUH_TIMEZONE));
-  $datetime = $dt->format('M d H:m');
+  $datetime = $dt->format('M d, H:i');
   return "<div class='datetime-container'><div class='datetime'>$datetime</div></div>";
 }
 

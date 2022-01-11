@@ -4,6 +4,7 @@
 <meta http-equiv="refresh" content="10">
 <head>
   <title>The B</title>
+<!--
   <script>
     window.setInterval("refresh()", 60000);
 
@@ -11,11 +12,13 @@
         window.location.reload();
     }
     </script>
+-->
   <style>
 
     body {
-      background: black;
-      color: white;
+      background: white;
+      color: black;
+      font-size: 18px;
     }
     table{
       border-collapse: collapse;

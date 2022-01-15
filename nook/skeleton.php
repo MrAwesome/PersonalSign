@@ -1,7 +1,9 @@
 <?php function headBody() {
 ?>
 <!DOCTYPE html>
+<!--
 <meta http-equiv="refresh" content="10">
+-->
 <head>
   <title>The B</title>
 <!--
@@ -58,7 +60,7 @@
     }
 
     .uvi, .aqi, .temperature {
-      font-size: 30px;
+      font-size: 48px;
       padding: 2px;
       display: inline-block;
     }
@@ -75,6 +77,7 @@
       font-size: 48px;
       border-bottom: 1px solid #666666;
       margin-bottom: 3px;
+      font-weight: bold;
       display: inline-block;
     }
 

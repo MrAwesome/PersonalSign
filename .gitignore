@@ -1,3 +1,4 @@
 .*api_key
 .*email_addr
 */node_modules/
+rubyreader/build/

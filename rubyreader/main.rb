@@ -25,7 +25,7 @@ js["items"].each do |item|
   contenthtml = item["content_html"]
 
   html = smallheader + contenthtml + smallfooter
-  if contenthtml.end_with?("Continue reading...<\/a>")
+  if contenthtml.end_with?("Continue reading...<\/a>") or contenthtml.end_with?("Source<\/a>")
     print "Fetching #{item['url']}\n"
     articleuri = URI(item["url"])
     articleresponse = Net::HTTP.get(articleuri)

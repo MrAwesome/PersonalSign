@@ -33,7 +33,7 @@ js["items"].each do |item|
   end
 
 
-  filename = i.to_s + ".html"
+  filename = i.to_s.rjust(3, "0") + ".html"
 
   w = File.new(builddir + filename, "w")
   #w.syswrite(articleresponse)

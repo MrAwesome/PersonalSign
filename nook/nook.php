@@ -35,10 +35,16 @@ function getPageContents($iteration): string {
 <?php
   $i = 0;
   while (true) {
-    $contents = getPageContents($i);
-    $file = fopen($filename, "w");
-    fwrite($file, $contents);
-    fwrite(STDERR, "_");
+    try {
+        $contents = getPageContents($i);
+        $file = fopen($filename, "w");
+        fwrite($file, $contents);
+        fwrite(STDERR, "_");
+    } catch (Exception $ex) {
+        fwrite(STDERR, "\n");
+        fwrite(STDERR, $ex);
+        fwrite(STDERR, "\n");
+    }
     sleep(60);
     $i++;
   }

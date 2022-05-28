@@ -1,9 +1,7 @@
 <?php function headBody() {
 ?>
 <!DOCTYPE html>
-<!--
 <meta http-equiv="refresh" content="10">
--->
 <head>
   <title>The B</title>
 <!--

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import {ZIP_TO_DATA} from './data';
-import {generateHtmlBody} from './generateHtmlBody';
+import {HtmlBodyGenerator} from './generateHtmlBody';
 import {noop} from "./utils";
 import {getAqiData, getOpenWeatherData} from "./weather";
 
@@ -28,7 +28,8 @@ const writeFile = fs.promises.writeFile;
         return;
     }
 
-    const htmlBody = generateHtmlBody(cityData, aqiData, openWeatherData);
+    const bodyGenerator = new HtmlBodyGenerator(cityData, aqiData, openWeatherData);
+    const htmlBody = bodyGenerator.generateHtmlBody();
 
     //const {sunset,sunrise,temp,feels_like,pressure,humidity,wind_speed,wind_deg,clouds,weather} = openWeatherData.current;
     //console.log(`The current temperature in ${cityData.name} is ${temp}°F, but it feels like ${feels_like}°F.`);

@@ -6,7 +6,6 @@ export interface CityData {
     name: string;
     aqicnID: string;
     latLong: [number, number];
-    standardPressure: number;
 }
 
 export interface AQIData {
@@ -31,19 +30,24 @@ export interface OpenWeatherBase {
     dt: number;
 }
 
-export interface OpenWeatherConditions extends OpenWeatherBase {
-    temp: number;
-    feels_like: number;
+export interface OpenWeatherBasics extends OpenWeatherBase {
     pressure: number;
     humidity: number;
     dew_point: number;
-    uvi: number;
+    uvi: number; // UV index
     clouds: number; // cloudiness %
-    visibility: number; // visibility in meters
     wind_speed: number; // wind speed in m/s
     wind_deg: number; // wind direction in degrees
-    wind_gust: number; // wind gust in m/s
+    wind_gust?: number; // wind gust in m/s
+    rain?: number; // rain volume for last hour in mm
+    snow?: number; // snow volume for last hour in mm
     weather: OpenWeatherDescriptionAndIcon[];
+}
+
+export interface OpenWeatherConditions extends OpenWeatherBasics {
+    temp: number;
+    feels_like: number;
+    visibility: number; // visibility in meters
 }
 
 export interface OpenWeatherCurrent extends OpenWeatherConditions {
@@ -59,7 +63,7 @@ export interface OpenWeatherHourly extends OpenWeatherConditions {
     pop: number; // probability of precipitation
 }
 
-export interface OpenWeatherDaily extends OpenWeatherBase {
+export interface OpenWeatherDaily extends OpenWeatherBasics {
     sunrise: number;
     sunset: number;
     moonrise: number;
@@ -82,16 +86,7 @@ export interface OpenWeatherDaily extends OpenWeatherBase {
         morn: number;
     };
 
-    pressure: number;
-    humidity: number;
-    dew_point: number;
-    wind_speed: number;
-    wind_deg: number;
-    wind_gust: number;
-    weather: OpenWeatherDescriptionAndIcon[];
-    clouds: number; // cloudiness %
     pop: number; // probability of precipitation
-    uvi: number; // UV index
 }
 
 export interface OpenWeatherAlert {

@@ -14,7 +14,7 @@ const writeFile = fs.promises.writeFile;
         readFile('./src/skeleton.html', 'utf8'),
     ].map(p => p.then(x => x.trim())));
     
-    const cityData = ZIP_TO_DATA['94103'];
+    const cityData = ZIP_TO_DATA['85701'];
     const aqiData = await getAqiData(aqicnToken, cityData.aqicnID);
     const openWeatherData = await getOpenWeatherData(openWeatherMapToken, cityData.latLong);
 

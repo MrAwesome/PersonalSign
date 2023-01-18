@@ -33,10 +33,16 @@ export function getAMPMHourOnly(date: Date): string {
         .replace(/\s/g, "");
 }
 
+const BAR_CHARS = "x▁▂▃▄▅▆▇█";
+//const BAR_CHARS = "⢀⣀⣤⣶⣿";
+//const BAR_CHARS = "\u2003▁▂▃▄▅▆▇█";
+//const BAR_CHARS = "x⢀⣀⣠⣤⣴⣶⣾⣿";
+
+export function checkAboveBarThreshold(percentage: number): boolean {
+    return Math.round(percentage * (BAR_CHARS.length - 1)) === 0;
+}
+
 export function getBarCharacter(percentage: number): string {
-    //const bar = "⢀⣀⣤⣶⣿";
-    //const bar = "\u2003▁▂▃▄▅▆▇█";
-    const bar = "x▁▂▃▄▅▆▇█";
-    const index = Math.round(percentage * (bar.length - 1));
-    return bar[index].replace("x", "&nbsp;");
+    const index = Math.round(percentage * (BAR_CHARS.length - 1));
+    return BAR_CHARS[index].replace("x", "&nbsp;");
 }

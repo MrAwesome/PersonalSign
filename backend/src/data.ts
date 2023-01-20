@@ -4,20 +4,20 @@ export const AVERAGE_PRESSURE = 1013.25; // hPa
 
 export const ZIP_TO_DATA: Record<string, CityData> = {
     '94103': {
-        name: 'San Francisco, CA',
+        displayName: 'San Francisco, CA',
         aqicnID: '@3900',
-        latLong: [37.7675, -122.4217],
+        location: {latLong: [37.7675, -122.4217]},
     },
     '29639': {
-        name: 'Due West, SC',
+        displayName: 'Due West, SC',
         aqicnID: 'A07666',
-        latLong: [34.3339, -82.3880],
+        location: {latLong: [34.3339, -82.3880]},
     },
     
     '85701': {
-        name: 'Green Valley, AZ',
+        displayName: 'Green Valley, AZ',
         aqicnID: '@5958',
-        latLong: [31.8308, -111.0052],
+        location: {latLong: [31.8308, -111.0052]},
     },
     
 

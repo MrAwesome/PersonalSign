@@ -35,6 +35,7 @@
   "config": {},
   "dependencies": {
     "@types/node-fetch": "^2.6.2",
-    "node-fetch": "2.6.5"
+    "node-fetch": "2.6.5",
+    "openweather-api-node": "^2.0.0"
   }
 }

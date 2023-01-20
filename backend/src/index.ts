@@ -1,42 +1,50 @@
 import fs from 'fs';
 import {ZIP_TO_DATA} from './data';
 import {HtmlBodyGenerator} from './generateHtmlBody';
-import {noop} from "./utils";
-import {getAqiData, getOpenWeatherData} from "./weather";
+import {DataFetcher} from "./DataFetcher";
 
 const readFile = fs.promises.readFile;
 const writeFile = fs.promises.writeFile;
+const mkdir = fs.promises.mkdir;
+const dirExists = fs.promises.access;
 
 (async () => {
-    const [aqicnToken, openWeatherMapToken, htmlSkeleton] = await Promise.all([
-        readFile('.aqicn_api_key', 'utf8'),
+    const [openWeatherMapToken, htmlSkeleton] = await Promise.all([
         readFile('.openweathermap_api_key', 'utf8'),
         readFile('./src/skeleton.html', 'utf8'),
     ].map(p => p.then(x => x.trim())));
+
+    const cityData = ZIP_TO_DATA['94103'];
     
-    const cityData = ZIP_TO_DATA['85701'];
-    const aqiData = await getAqiData(aqicnToken, cityData.aqicnID);
-    const openWeatherData = await getOpenWeatherData(openWeatherMapToken, cityData.latLong);
+    const dataFetcher = new DataFetcher(openWeatherMapToken, cityData.location);
+    
+    const {uncheckedAqiData, uncheckedWeatherData} = await dataFetcher.getAllData();
 
-    if ("error" in openWeatherData) {
-        console.error(openWeatherData.error);
+    if ("error" in uncheckedAqiData) {
+        console.error("Error fetching AQI data", uncheckedAqiData.error);
+        // TODO: display on page
         return;
     }
+    const aqiData = uncheckedAqiData;
 
-    if ("error" in aqiData) {
-        console.error(aqiData.error);
+    if ("error" in uncheckedWeatherData) {
+        console.error("Error fetching weather data", uncheckedWeatherData.error);
         return;
     }
+    const weatherData = uncheckedWeatherData;
 
-    const bodyGenerator = new HtmlBodyGenerator(cityData, aqiData, openWeatherData);
+    const bodyGenerator = new HtmlBodyGenerator(cityData, aqiData, weatherData);
     const htmlBody = bodyGenerator.generateHtmlBody();
 
-    //const {sunset,sunrise,temp,feels_like,pressure,humidity,wind_speed,wind_deg,clouds,weather} = openWeatherData.current;
-    //console.log(`The current temperature in ${cityData.name} is ${temp}°F, but it feels like ${feels_like}°F.`);
+    const finalHtml = htmlSkeleton.replace("<!-- BODY -->", htmlBody);
 
-    await writeFile('/tmp/weather.html', htmlSkeleton.replace('<!-- BODY -->', htmlBody), 'utf8');
+    let dir;
+    if (await dirExists('/mem').catch(() => false)) {
+        dir = '/mem/personalsign';
+    } else {
+        dir = '/tmp/personalsign';
+    };
 
-
-    noop(aqiData);
-    noop(openWeatherData);
+    await mkdir(dir, {recursive: true});
+    await writeFile(`${dir}/index.html`, finalHtml, 'utf8');
 })();

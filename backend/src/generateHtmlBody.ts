@@ -1,20 +1,22 @@
-import {AQIData, CityData, OpenWeatherData} from "./types";
+import {AQIData, CityData} from "./types";
+import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
 import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, getDate, mod, checkAboveBarThreshold} from "./utils";
 
 
 export class HtmlBodyGenerator {
-
     constructor(
         private cityData: CityData,
-        private aqiData: AQIData,
-        private openWeatherData: OpenWeatherData,
+        private aqiData: AirPollution,
+        private weatherData: WeatherEverything,
     ) {
         this.getPrecipitationChanceNext12HoursOnlyBars = this.getPrecipitationChanceNext12HoursOnlyBars.bind(this);
     }
 
     generateHtmlBody(): string {
-        const {cityData, openWeatherData, aqiData} = this;
-        const {current, minutely, daily} = openWeatherData;
+        const {cityData, weatherData, aqiData} = this;
+        const {current, minutely, daily} = weatherData;
+
+        const currentWeather = current.weather;
 
         const now = new Date();
 
@@ -24,13 +26,13 @@ export class HtmlBodyGenerator {
         const hoursAndMin = now
             .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric'});
 
-        const pressureVariancePercent = calculatePressureVariancePercent(current.pressure);
+        const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
         const precipTable = this.getPrecipitationChanceNext12HoursOnlyBars();
 
-        const windGust = current.wind_gust ? `Wind Gust: ${current.wind_gust.toFixed(1)}mph <br />` : '';
+        const windGust = currentWeather.wind.gust ? `Wind Gust: ${currentWeather.wind.gust.toFixed(1)}mph <br />` : '';
 
-        const [precipNow, precipTen, precipThirty] = [minutely[0].precipitation, minutely[10].precipitation, minutely[30].precipitation];
+        const [precipNow, precipTen, precipThirty] = [minutely[0].weather.rain, minutely[10].weather.rain, minutely[30].weather.rain];
 
         let precipNextHour = '';
         if (precipNow + precipTen + precipThirty > 0) {
@@ -42,13 +44,13 @@ export class HtmlBodyGenerator {
         <div>
             <div class="heading">
                 <div class="datetime-heading">${monthAndDay} / ${hoursAndMin} </div>
-                <div class="city-heading">${cityData.name}</div>
+                <div class="city-heading">${cityData.displayName}</div>
             </div>
             <div>
                 AQI: ${aqiData.aqi} <br />
-                Temp: ${current.temp.toFixed(0)}°F &nbsp; (Feels Like: ${current.temp.toFixed(0)}°F) <br />
-                Humidity: ${current.humidity}% <br />
-                Wind Speed: ${current.wind_speed.toFixed(1)}mph <br />
+                Temp: ${currentWeather.temp.cur.toFixed(0)}°F &nbsp; (Feels Like: ${currentWeather.feelsLike.cur.toFixed(0)}°F) <br />
+                Humidity: ${currentWeather.humidity}% <br />
+                Wind Speed: ${currentWeather.wind.speed.toFixed(1)}mph <br />
                 ${windGust}
                 Pressure: ${pressureVariancePercent} <br />
 
@@ -57,8 +59,8 @@ export class HtmlBodyGenerator {
 
                 <br />
 
-                Today: ${daily[0].weather.map(x => x.description).join(', ')} <br />
-                Tomorrow: ${daily[1].weather.map(x => x.description).join(', ')} <br />
+                Today: ${daily[0].weather.description} <br />
+                Tomorrow: ${daily[1].weather.description} <br />
             </div>
         </div>
     `;
@@ -66,20 +68,20 @@ export class HtmlBodyGenerator {
 
     getPrecipitationChanceNext12HoursOnlyBars(): string {
         const hourInterval = 6;
-        const {openWeatherData} = this;
-        const {hourly} = openWeatherData;
+        const {weatherData} = this;
+        const {hourly} = weatherData;
 
-        if (hourly.map(h => h.pop).every(checkAboveBarThreshold)) {
+        if (hourly.map(h => h.weather.pop).every(checkAboveBarThreshold)) {
             return '';
         }
 
         const barchart = hourly
-            .map(({pop}) => `${getBarCharacter(pop)}`)
+            .map(({weather}) => `${getBarCharacter(weather.pop)}`)
             .join('');
 
         const labelsUnpadded = hourly
             .filter((_e, index) => { return mod(index, hourInterval) === 0; })
-            .map(({dt}) => getAMPMHourOnly(getDate(dt)));
+            .map(({dt}) => getAMPMHourOnly(dt));
         const [firstLabel, ...restLabels] = labelsUnpadded;
         const fixedRestLabels = restLabels
             .map((l) => l.padStart(hourInterval, 'x'))
@@ -97,8 +99,8 @@ export class HtmlBodyGenerator {
     }
 
 //    getPrecipitationChanceNext12Hours(): string {
-//        const {openWeatherData} = this;
-//        const {hourly} = openWeatherData;
+//        const {weatherData} = this;
+//        const {hourly} = weatherData;
 //        const percipHourlyTable = hourly; //.slice(0, 12);
 //
 //        //const tableHeader = `<table><tr><th>Hour</th><th>Precipitation</th></tr>`;

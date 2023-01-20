@@ -1,5 +1,5 @@
 import OpenWeatherAPI, {Everything as WeatherEverything, Options as OpenWeatherOptions, AirPollution} from 'openweather-api-node';
-import {AllData, AQIData, LocationData, ReturnedError, UncheckedAllData} from './types';
+import {LocationData, ReturnedError, UncheckedAllData} from './types';
 
 export class DataFetcher {
     private openWeatherAPI: OpenWeatherAPI | null = null;

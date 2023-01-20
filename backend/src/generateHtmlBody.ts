@@ -1,6 +1,6 @@
-import {AQIData, CityData} from "./types";
+import {CityData} from "./types";
 import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
-import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, getDate, mod, checkAboveBarThreshold} from "./utils";
+import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold} from "./utils";
 
 
 export class HtmlBodyGenerator {

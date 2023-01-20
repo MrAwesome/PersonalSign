@@ -5,11 +5,6 @@ export interface ReturnedError {
     message: string;
 }
 
-export interface AllData {
-    aqiData: AQIData;
-    weatherData: WeatherEverything;
-}
-
 export interface UncheckedAllData {
     uncheckedAqiData: AirPollution | ReturnedError;
     uncheckedWeatherData: WeatherEverything | ReturnedError;
@@ -37,9 +32,3 @@ type AtLeastOneField = {
 }
 
 export type LocationData = LocationDataOptional & AtLeastOneField;
-
-export interface AQIData {
-    aqi: number;
-    latLong: [number, number];
-    cityName: string;
-}

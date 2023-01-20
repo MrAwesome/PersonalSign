@@ -39,7 +39,8 @@ const dirExists = fs.promises.access;
     const finalHtml = htmlSkeleton.replace("<!-- BODY -->", htmlBody);
 
     let dir;
-    if (await dirExists('/mem').catch(() => false)) {
+    const memExists = (await dirExists('/mem').catch(() => false)) !== false;
+    if (memExists) {
         dir = '/mem/personalsign';
     } else {
         dir = '/tmp/personalsign';

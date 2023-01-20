@@ -47,5 +47,8 @@ const dirExists = fs.promises.access;
     };
 
     await mkdir(dir, {recursive: true});
-    await writeFile(`${dir}/index.html`, finalHtml, 'utf8');
+
+    const targetFile = `${dir}/index.html`;
+    await writeFile(targetFile, finalHtml, 'utf8');
+    console.log(`Succesfully wrote output to ${targetFile}`);
 })();

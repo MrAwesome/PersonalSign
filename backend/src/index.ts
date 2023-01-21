@@ -15,7 +15,7 @@ const dirExists = fs.promises.access;
     ].map(p => p.then(x => x.trim())));
 
     const cityData = ZIP_TO_DATA['94103'];
-    
+
     const dataFetcher = new DataFetcher(openWeatherMapToken, cityData.location);
     
     const {uncheckedAqiData, uncheckedWeatherData} = await dataFetcher.getAllData();
@@ -32,6 +32,8 @@ const dirExists = fs.promises.access;
         return;
     }
     const weatherData = uncheckedWeatherData;
+
+    writeFile('/tmp/everything.json', JSON.stringify({aqiData, weatherData}, null, 2));
 
     const bodyGenerator = new HtmlBodyGenerator(cityData, aqiData, weatherData);
     const htmlBody = bodyGenerator.generateHtmlBody();

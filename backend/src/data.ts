@@ -2,6 +2,7 @@ import {CityData} from "./types";
 
 export const AVERAGE_PRESSURE = 1013.25; // hPa
 
+// NOTE: can just use `zipcodes` npm package to get place names for zip codes
 export const ZIP_TO_DATA: Record<string, CityData> = {
     '94103': {
         displayName: 'San Francisco, CA',

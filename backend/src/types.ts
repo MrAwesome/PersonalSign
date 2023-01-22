@@ -1,13 +1,25 @@
 import {Everything as WeatherEverything, AirPollution} from 'openweather-api-node';
 
-export interface ReturnedError {
-    error: true;
+export class ReturnedError {
+    error: true = true;
     message: string;
+
+    private constructor(message: string) {
+        this.message = message;
+    }
+
+    static err(message: string): ReturnedError {
+        return new ReturnedError(message);
+    }
 }
 
+export const err = ReturnedError.err;
+
+
 export interface UncheckedAllData {
-    uncheckedAqiData: AirPollution | ReturnedError;
     uncheckedWeatherData: WeatherEverything | ReturnedError;
+    uncheckedCurrentAirPollutionData: AirPollution | ReturnedError;
+    uncheckedForecastedAirPollutionData: AirPollution[] | ReturnedError;
 }
 
 export interface CityData {

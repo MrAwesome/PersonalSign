@@ -1,5 +1,6 @@
 import OpenWeatherAPI, {Everything as WeatherEverything, Options as OpenWeatherOptions, AirPollution} from 'openweather-api-node';
 import {LocationData, ReturnedError, UncheckedAllData} from './types';
+import {tryProm} from './utils';
 
 export class DataFetcher {
     private openWeatherAPI: OpenWeatherAPI | null = null;
@@ -8,10 +9,11 @@ export class DataFetcher {
         private openWeatherMapToken: string, 
         private location: LocationData,
     ) {
-        this.getWeatherData = this.getWeatherData.bind(this);
-        this.getWeatherData = this.getWeatherData.bind(this);
         this.getCurrentAirPollutionData = this.getCurrentAirPollutionData.bind(this);
         this.getForecastedAirPollutionData = this.getForecastedAirPollutionData.bind(this);
+        this.getOpenWeatherAPI = this.getOpenWeatherAPI.bind(this);
+        this.getWeatherData = this.getWeatherData.bind(this);
+        this.getAllData = this.getAllData.bind(this);
     }
     
     hasLocationData(): boolean {
@@ -55,40 +57,34 @@ export class DataFetcher {
 
     async getWeatherData(): Promise<WeatherEverything | ReturnedError> {
         const api = this.getOpenWeatherAPI()
-        const data = await api.getEverything();
-
-        // TODO: handle errors
-
-        return data;
+        return tryProm(async () => api.getEverything());
     }
 
     async getCurrentAirPollutionData(): Promise<AirPollution | ReturnedError> {
         const api = this.getOpenWeatherAPI()
-        const data = await api.getCurrentAirPollution();
-
-        // TODO: handle errors
-
-        return data;
+        return tryProm(async () => api.getCurrentAirPollution());
     }
 
     async getForecastedAirPollutionData(): Promise<AirPollution[] | ReturnedError> {
         const api = this.getOpenWeatherAPI()
-        const data = await api.getForecastedAirPollution();
-
-        // TODO: handle errors
-
-        return data;
+        return tryProm(async () => api.getForecastedAirPollution());
     }
 
     async getAllData(): Promise<UncheckedAllData> {
-        const [uncheckedAqiData, uncheckedWeatherData] = await Promise.all([
-            this.getCurrentAirPollutionData(),
+        const [
+            uncheckedWeatherData,
+            uncheckedCurrentAirPollutionData,
+            uncheckedForecastedAirPollutionData,
+        ] = await Promise.all([
             this.getWeatherData(),
+            this.getCurrentAirPollutionData(),
+            this.getForecastedAirPollutionData(),
         ]);
 
         return {
-            uncheckedAqiData,
             uncheckedWeatherData,
+            uncheckedCurrentAirPollutionData,
+            uncheckedForecastedAirPollutionData,
         }
     }
 }

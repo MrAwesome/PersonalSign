@@ -3,17 +3,28 @@ import {AirPollution, Everything as WeatherEverything} from "openweather-api-nod
 import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold} from "./utils";
 
 
+//import geocoder from "node-geocoder";
+//
+//const now = Date.now();
+//const lol = geocoder({
+//    provider: "openstreetmap",
+//}).reverse({ lat: 34.29752308708957, lon: -82.40668218013909}, (err, res) => {
+//    console.log((Date.now() - now) / 1000);
+//    console.log(res);
+//});
+
+
 export class HtmlBodyGenerator {
     constructor(
         private cityData: CityData,
-        private aqiData: AirPollution,
+        private currentAirPollutionData: AirPollution,
         private weatherData: WeatherEverything,
     ) {
         this.getPrecipitationChanceNext12HoursOnlyBars = this.getPrecipitationChanceNext12HoursOnlyBars.bind(this);
     }
 
     generateHtmlBody(): string {
-        const {cityData, weatherData, aqiData} = this;
+        const {cityData, weatherData, currentAirPollutionData} = this;
         const {current, minutely, daily} = weatherData;
 
         const currentWeather = current.weather;
@@ -42,12 +53,14 @@ export class HtmlBodyGenerator {
 
         const preProcessedHtml = `
         <div>
-            <div class="heading">
-                <div class="datetime-heading">${monthAndDay} / ${hoursAndMin} </div>
-                <div class="city-heading">${cityData.displayName}</div>
+            <div class="heading-container">
+                <div class="heading">
+                    <div class="datetime-heading">${monthAndDay} / ${hoursAndMin} </div>
+                    <div class="city-heading">${cityData.displayName}</div>
+                </div>
             </div>
             <div>
-                %P% AQI: %PP% ${aqiData.aqi} <br />
+                %P% AQI: %PP% ${currentAirPollutionData.aqi} <br />
                 %P% Temp: %PP% ${currentWeather.temp.cur.toFixed(0)}°F %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}°F%P%)%PP% <br />
                 %P% Humidity: %PP% ${currentWeather.humidity}% <br />
                 %P% Wind Speed: %PP% ${currentWeather.wind.speed.toFixed(1)}mph <br />

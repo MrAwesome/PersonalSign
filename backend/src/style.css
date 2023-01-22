@@ -1,0 +1,102 @@
+body {
+    background: white;
+    color: black;
+    font-size: 36px;
+}
+
+/* testing for nook simple touch */
+.all-container {
+    max-width: 600px;
+    max-height: 800px;
+}
+
+table{
+    border-collapse: collapse;
+    border: 1px solid #333333;
+    border-radius: 5px;
+}
+
+table td {
+    border: 1px solid #333333;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+table th {
+    border: 1px solid #333333;
+}
+
+.lilmage {
+    border: 1px solid #333333;
+    background: lightgrey;
+}
+
+.attainable-time {
+    font-weight: bold;
+}
+
+.unattainable-time {
+    font-style: italic;
+    color: #888888;
+}
+
+.prefix {
+    display: inline-block;
+    padding-right: 8px;
+    font-style: italic;
+    font-size: 24px;
+}
+
+.uvi, .aqi, .temperature {
+    font-size: 48px;
+    padding: 2px;
+    display: inline-block;
+}
+
+.alerttable {
+    padding-bottom: 15px;
+}
+
+.weathertable, .munitable, .barttable {
+    padding-top: 8px;
+}
+
+.heading {
+    display: inline-block;
+    border-bottom: 1px solid #666666;
+    margin-bottom: 3px;
+    padding-bottom: 5px;
+}
+
+.datetime-heading {
+    font-size: 64px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.city-heading {
+    font-size: 18px;
+    text-align: center;
+    font-weight: bold;
+    line-height: 1;
+    padding-top: 1px;
+}
+
+.precipitation-graph {
+    border: 1px solid #333333;
+    display: inline-block;
+}
+
+.precipitation-graph-header {
+    font-size: 18px;
+    border-bottom: 1px solid #333333;
+    padding-bottom: 2px;
+    font-style: italic;
+}
+
+.precipitation-graph-data {
+    padding-top: 2px;
+    font-family: monospace;
+    font-size: 16px;
+}
+

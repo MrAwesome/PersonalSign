@@ -1,4 +1,5 @@
 import {AVERAGE_PRESSURE} from "./data";
+import {ReturnedError} from "./types";
 
 export function noop(_: any) {}
 
@@ -45,4 +46,13 @@ export function checkAboveBarThreshold(percentage: number): boolean {
 export function getBarCharacter(percentage: number): string {
     const index = Math.round(percentage * (BAR_CHARS.length - 1));
     return BAR_CHARS[index].replace("x", "&nbsp;");
+}
+
+export async function tryProm<T>(fn: () => Promise<T>): Promise<T | ReturnedError> {
+    try {
+        return fn();
+    } catch (e) {
+        console.error(e);
+        return {error: true, message: `${e}`};
+    }
 }

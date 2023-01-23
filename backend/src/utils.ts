@@ -56,3 +56,7 @@ export async function tryProm<T>(fn: () => Promise<T>): Promise<T | ReturnedErro
         return {error: true, message: `${e}`};
     }
 }
+
+export function getOWIconURL(icon: string): string {
+    return `http://openweathermap.org/img/wn/${icon}.png`;
+}

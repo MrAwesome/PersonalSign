@@ -1,4 +1,5 @@
 .*api_key
 .*email_addr
+backend/config.json
 */node_modules/
 rubyreader/build/

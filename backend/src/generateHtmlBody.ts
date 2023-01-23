@@ -1,6 +1,6 @@
 import {CityData} from "./types";
 import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
-import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold} from "./utils";
+import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL} from "./utils";
 
 
 //import geocoder from "node-geocoder";
@@ -21,6 +21,8 @@ export class HtmlBodyGenerator {
         private weatherData: WeatherEverything,
     ) {
         this.getPrecipitationChanceNext12HoursOnlyBars = this.getPrecipitationChanceNext12HoursOnlyBars.bind(this);
+        this.getIconsNext12Hours = this.getIconsNext12Hours.bind(this);
+        this.generateHtmlBody = this.generateHtmlBody.bind(this);
     }
 
     generateHtmlBody(): string {
@@ -35,13 +37,14 @@ export class HtmlBodyGenerator {
             .toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
 
         const hoursAndMin = now
-            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric'});
+            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric'})
+            .replace(/\s/g, ' ')
 
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
         const precipTable = this.getPrecipitationChanceNext12HoursOnlyBars();
 
-        const windGust = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${currentWeather.wind.gust.toFixed(1)}mph <br />` : '';
+        const windGust = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${currentWeather.wind.gust.toFixed(0)}mph <br />` : '';
 
         const [precipNow, precipTen, precipThirty] = [minutely[0].weather.rain, minutely[10].weather.rain, minutely[30].weather.rain];
 
@@ -63,7 +66,7 @@ export class HtmlBodyGenerator {
                 %P% AQI: %PP% ${currentAirPollutionData.aqi} <br />
                 %P% Temp: %PP% ${currentWeather.temp.cur.toFixed(0)}°F %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}°F%P%)%PP% <br />
                 %P% Humidity: %PP% ${currentWeather.humidity}% <br />
-                %P% Wind Speed: %PP% ${currentWeather.wind.speed.toFixed(1)}mph <br />
+                %P% Wind Speed: %PP% ${currentWeather.wind.speed.toFixed(0)}mph <br />
                 ${windGust}
                 %P% Pressure: %PP% ${pressureVariancePercent} <br />
 
@@ -74,6 +77,7 @@ export class HtmlBodyGenerator {
 
                 %P% Today: %PP% ${daily[0].weather.description} <br />
                 %P% Tomorrow: %PP% ${daily[1].weather.description} <br />
+
             </div>
         </div>
         `;
@@ -116,6 +120,18 @@ export class HtmlBodyGenerator {
             </div>
         `;
     }
+
+    getIconsNext12Hours(): string {
+        const {weatherData} = this;
+        const {hourly} = weatherData;
+
+        const icons = hourly
+            .slice(0, 12)
+            .map(({weather}) => `<img class="hourly-icon" src="${getOWIconURL(weather.icon.raw)}" />`);
+
+        return `<div class="hourly-icons">${icons.join('')}</div>`;
+    }
+
 
     //    getPrecipitationChanceNext12Hours(): string {
     //        const {weatherData} = this;

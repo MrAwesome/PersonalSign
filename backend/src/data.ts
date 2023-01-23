@@ -20,6 +20,13 @@ export const ZIP_TO_DATA: Record<string, CityData> = {
         aqicnID: '@5958',
         location: {latLong: [31.8308, -111.0052]},
     },
+
+    '99999': {
+        displayName: 'Java Beach Cafe',
+        aqicnID: '@3900',
+        location: {latLong: [37.7675, -122.4217]},
+    },
+
     
 
 //    '29617': {

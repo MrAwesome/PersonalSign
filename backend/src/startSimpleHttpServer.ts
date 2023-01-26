@@ -12,7 +12,7 @@ export async function startSimpleHttpServer(weatherHandler: (coords: [lat: numbe
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end(JSON.stringify(data));
         } else if (url.pathname === '/weather') {
-            const imperialOrMetric: ImperialOrMetric = url.searchParams.get('measurement') === 'imperial' ? 'imperial' : 'metric';
+            const imperialOrMetric: ImperialOrMetric = url.searchParams.get('units') === 'imperial' ? 'imperial' : 'metric';
             const coords = url.searchParams.get('at')!;
             const [lat, lon] = coords.split(',').map(parseFloat);
             const html = await weatherHandler([lat, lon], imperialOrMetric);

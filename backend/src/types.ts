@@ -15,6 +15,7 @@ export class ReturnedError {
 
 export const err = ReturnedError.err;
 
+export type ImperialOrMetric = 'imperial' | 'metric';
 
 export interface UncheckedAllData {
     uncheckedWeatherData: WeatherEverything | ReturnedError;
@@ -24,7 +25,7 @@ export interface UncheckedAllData {
 
 export interface CityData {
     displayName: string;
-    aqicnID: string;
+    aqicnID?: string;
     location: LocationData;
 }
 

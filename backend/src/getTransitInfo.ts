@@ -1,8 +1,6 @@
 import fetch from 'node-fetch';
 
-
 //interface Location {
-//    
 //}
 //
 //abstract class TransitInfoFetcher {
@@ -33,25 +31,3 @@ export async function getDeparturesInfoForLocation([latitude, longitude]: [numbe
     const data = await response.json();
     return data;
 }
-
-//export async function startSimpleHttpServer() {
-//    const server = http.createServer(async (req, res) => {
-//        console.log(req);
-//        const url = new URL(req.url!, `http://${req.headers.host}`);
-//        if (url.pathname === '/transit') {
-//            const inn = url.searchParams.get('in')!;
-//            const [lat, lon] = inn.split(',').map(parseFloat);
-//            const data = await getDeparturesInfoForLocation([lat, lon]);
-//            res.writeHead(200, {'Content-Type': 'application/json'});
-//            res.end(JSON.stringify(data));
-//        } else {
-//            res.writeHead(404);
-//            res.end();
-//        }
-//    });
-//    server.listen(8080);
-//}
-//
-//(async () => {
-//    await startSimpleHttpServer();
-//})();

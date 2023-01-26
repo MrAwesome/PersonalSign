@@ -1,13 +1,15 @@
 import fs from 'fs';
-import {ZIP_TO_DATA} from './data';
-import {DIR_NAME} from './constants';
+//import {ZIP_TO_DATA} from './data';
+//import {DIR_NAME} from './constants';
 import readAndValidateConfig from './readAndValidateConfig';
 import {generateFinalHtml} from './generateHtml';
+import {startSimpleHttpServer} from './startSimpleHttpServer';
+import {ImperialOrMetric} from './types';
 
 const readFile = fs.promises.readFile;
-const writeFile = fs.promises.writeFile;
-const mkdir = fs.promises.mkdir;
-const exists = fs.promises.access;
+//const writeFile = fs.promises.writeFile;
+//const mkdir = fs.promises.mkdir;
+//const exists = fs.promises.access;
 
 // TODO: move files from here into their own files
 // TODO: add tests
@@ -25,22 +27,22 @@ async function getKeyAndSkeletons() {
     return {htmlSkeleton, cssBody};
 }
 
-async function writeOutTestFile(finalHtml: string) {
-    const memExists = (await exists('/mem').catch(() => false)) !== false;
-
-    const dirPrefix = memExists ? '/mem' : '/tmp';
-    const dir = `${dirPrefix}/${DIR_NAME}`;
-
-    await mkdir(dir, {recursive: true});
-
-    const targetFile = `${dir}/index.html`;
-    await writeFile(targetFile, finalHtml, 'utf8');
-    console.log(`Succesfully wrote output to ${targetFile}`);
-}
+//async function writeOutTestFile(finalHtml: string) {
+//    const memExists = (await exists('/mem').catch(() => false)) !== false;
+//
+//    const dirPrefix = memExists ? '/mem' : '/tmp';
+//    const dir = `${dirPrefix}/${DIR_NAME}`;
+//
+//    await mkdir(dir, {recursive: true});
+//
+//    const targetFile = `${dir}/index.html`;
+//    await writeFile(targetFile, finalHtml, 'utf8');
+//    console.log(`Succesfully wrote output to ${targetFile}`);
+//}
 
 (async () => {
     const {htmlSkeleton, cssBody} = await getKeyAndSkeletons();
-    const cityData = ZIP_TO_DATA['94103'];
+    //const cityData = ZIP_TO_DATA['94103'];
 
     // if config.json doesn't exist, create it and populate it with default values: openweathermap as weather provider, openstreetmap as location provider
     // if config.json exists, read it, validate it with zod, and use the values in it
@@ -48,13 +50,18 @@ async function writeOutTestFile(finalHtml: string) {
     const config = await readAndValidateConfig();
 
     const openWeatherMapToken = config.weather.options.openweathermap.apiKey;
-    const finalHtmlOrErr = await generateFinalHtml(cityData, openWeatherMapToken, htmlSkeleton, cssBody);
+    const generateHtml = async (coords: [lat: number, lon: number], imperialOrMetric: ImperialOrMetric) => {
+        // TODO: Fix displayname to come from cached geocoding
+        const cityData = {location: {latLong: coords}, displayName: ""};
+        const finalHtmlOrErr = await generateFinalHtml(cityData, openWeatherMapToken, htmlSkeleton, cssBody, imperialOrMetric);
+        if ("error" in finalHtmlOrErr) {
+            return `Error: ${finalHtmlOrErr.error}`;
+        }
+        
+        const finalHtml = finalHtmlOrErr.html;
+        return finalHtml;
 
-    if ("error" in finalHtmlOrErr) {
-        console.error("Error generating HTML", finalHtmlOrErr.error);
-        return;
-    }
-    const finalHtml = finalHtmlOrErr.html;
-
-    await writeOutTestFile(finalHtml);
+    };
+    await startSimpleHttpServer(generateHtml);
+    //await writeOutTestFile(finalHtml);
 })();

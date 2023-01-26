@@ -1,5 +1,5 @@
 import OpenWeatherAPI, {Everything as WeatherEverything, Options as OpenWeatherOptions, AirPollution} from 'openweather-api-node';
-import {LocationData, ReturnedError, UncheckedAllData} from './types';
+import {ImperialOrMetric, LocationData, ReturnedError, UncheckedAllData} from './types';
 import {tryProm} from './utils';
 
 // TODO: handle location data not being available, give graceful error which includes the given address and offers alternatives
@@ -10,6 +10,7 @@ export class DataFetcher {
     constructor(
         private openWeatherMapToken: string, 
         private location: LocationData,
+        private imperialOrMetric: ImperialOrMetric,
     ) {
         this.getCurrentAirPollutionData = this.getCurrentAirPollutionData.bind(this);
         this.getForecastedAirPollutionData = this.getForecastedAirPollutionData.bind(this);
@@ -26,12 +27,12 @@ export class DataFetcher {
     }
 
     private getOpenWeatherAPI(): OpenWeatherAPI {
-        const {openWeatherMapToken, location} = this;
+        const {openWeatherMapToken, location, imperialOrMetric} = this;
         const {latLong, zipCode, locationName} = location;
         if (this.openWeatherAPI === null) {
             const openWeatherOpts: OpenWeatherOptions = {
                 key: openWeatherMapToken,
-                units: 'imperial', // TODO: make this configurable
+                units: imperialOrMetric, // TODO: make this configurable
             }
 
             if (latLong !== undefined) {

@@ -1,9 +1,9 @@
 import {DataFetcher} from "./DataFetcher";
 import {HtmlBodyGenerator} from "./generateHtmlBody";
-import {CityData, err, ReturnedError} from "./types";
+import {CityData, err, ImperialOrMetric, ReturnedError} from "./types";
 
-export async function generateFinalHtml(cityData: CityData, openWeatherMapToken: string, htmlSkeleton: string, cssBody: string): Promise<{html: string} | ReturnedError> {
-    const dataFetcher = new DataFetcher(openWeatherMapToken, cityData.location);
+export async function generateFinalHtml(cityData: CityData, openWeatherMapToken: string, htmlSkeleton: string, cssBody: string, imperialOrMetric: ImperialOrMetric): Promise<{html: string} | ReturnedError> {
+    const dataFetcher = new DataFetcher(openWeatherMapToken, cityData.location, imperialOrMetric);
     const {uncheckedCurrentAirPollutionData, uncheckedWeatherData} = await dataFetcher.getAllData();
 
     if ("error" in uncheckedCurrentAirPollutionData) {
@@ -23,7 +23,7 @@ export async function generateFinalHtml(cityData: CityData, openWeatherMapToken:
 
     //writeFile('/tmp/everything.json', JSON.stringify({currentAirPollutionData, weatherData}, null, 2));
 
-    const bodyGenerator = new HtmlBodyGenerator(cityData, currentAirPollutionData, weatherData);
+    const bodyGenerator = new HtmlBodyGenerator(cityData, currentAirPollutionData, weatherData, imperialOrMetric);
     const htmlBody = bodyGenerator.generateHtmlBody();
 
     const finalHtml = htmlSkeleton

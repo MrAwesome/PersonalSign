@@ -1,4 +1,4 @@
-import {CityData} from "./types";
+import {CityData, ImperialOrMetric} from "./types";
 import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
 import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL} from "./utils";
 
@@ -19,8 +19,9 @@ export class HtmlBodyGenerator {
         private cityData: CityData,
         private currentAirPollutionData: AirPollution,
         private weatherData: WeatherEverything,
+        private imperialOrMetric: ImperialOrMetric,
     ) {
-        this.getPrecipitationChanceNext12HoursOnlyBars = this.getPrecipitationChanceNext12HoursOnlyBars.bind(this);
+        this.getPrecipitationChanceNext48HoursOnlyBars = this.getPrecipitationChanceNext48HoursOnlyBars.bind(this);
         this.getIconsNext12Hours = this.getIconsNext12Hours.bind(this);
         this.generateHtmlBody = this.generateHtmlBody.bind(this);
     }
@@ -42,7 +43,7 @@ export class HtmlBodyGenerator {
 
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
-        const precipTable = this.getPrecipitationChanceNext12HoursOnlyBars();
+        const precipTable = this.getPrecipitationChanceNext48HoursOnlyBars();
 
         const windGust = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${currentWeather.wind.gust.toFixed(0)}mph <br />` : '';
 
@@ -64,7 +65,7 @@ export class HtmlBodyGenerator {
             </div>
             <div>
                 %P% AQI: %PP% ${currentAirPollutionData.aqi} <br />
-                %P% Temp: %PP% ${currentWeather.temp.cur.toFixed(0)}°F %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}°F%P%)%PP% <br />
+                %P% Temp: %PP% ${currentWeather.temp.cur.toFixed(0)}%DEG% %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}%DEG%%P%)%PP% <br />
                 %P% Humidity: %PP% ${currentWeather.humidity}% <br />
                 %P% Wind Speed: %PP% ${currentWeather.wind.speed.toFixed(0)}mph <br />
                 ${windGust}
@@ -83,13 +84,14 @@ export class HtmlBodyGenerator {
         `;
 
         const processedHtml = preProcessedHtml
+            .replace(/%DEG%/g, this.imperialOrMetric === 'imperial' ? '°F' : '°C')
             .replace(/%P%/g, '<div class="prefix">')
             .replace(/%PP%/g, '</div>');
 
         return processedHtml;
     }
 
-    getPrecipitationChanceNext12HoursOnlyBars(): string {
+    getPrecipitationChanceNext48HoursOnlyBars(): string {
         const hourInterval = 6;
         const {weatherData} = this;
         const {hourly} = weatherData;
@@ -115,7 +117,7 @@ export class HtmlBodyGenerator {
 
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Next 48 Hours:</div>
+                <div class="precipitation-graph-header">Precipitation Chance Next 48 Hours:</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;

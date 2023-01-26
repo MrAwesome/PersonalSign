@@ -16,7 +16,6 @@ export async function startSimpleHttpServer(weatherHandler: (coords: [lat: numbe
             const coords = url.searchParams.get('at')!;
             const [lat, lon] = coords.split(',').map(parseFloat);
             const html = await weatherHandler([lat, lon], imperialOrMetric);
-            console.log(html);
 
             res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
                           //'Text-Encoding': 'utf-8',

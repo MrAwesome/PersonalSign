@@ -1,47 +1,20 @@
 import fs from 'fs';
 import {ZIP_TO_DATA} from './data';
-import {HtmlBodyGenerator} from './generateHtmlBody';
-import {DataFetcher} from "./DataFetcher";
-import {CityData, err, ReturnedError} from './types';
-import {DEFAULT_MUST_REPLACE_STRING, Options} from './schemas/config';
 import {DIR_NAME} from './constants';
 import readAndValidateConfig from './readAndValidateConfig';
+import {generateFinalHtml} from './generateHtml';
 
 const readFile = fs.promises.readFile;
 const writeFile = fs.promises.writeFile;
 const mkdir = fs.promises.mkdir;
 const exists = fs.promises.access;
 
-async function generateFinalHtml(cityData: CityData, openWeatherMapToken: string, htmlSkeleton: string, cssBody: string): Promise<{html: string} | ReturnedError> {
-    const dataFetcher = new DataFetcher(openWeatherMapToken, cityData.location);
-    const {uncheckedCurrentAirPollutionData, uncheckedWeatherData} = await dataFetcher.getAllData();
-
-    if ("error" in uncheckedCurrentAirPollutionData) {
-        const {message} = uncheckedCurrentAirPollutionData;
-        console.error("Error fetching AQI data", message);
-        // TODO: display on page
-        return err("Error fetching AQI data");
-    }
-    const currentAirPollutionData = uncheckedCurrentAirPollutionData;
-
-    if ("error" in uncheckedWeatherData) {
-        const {message} = uncheckedWeatherData;
-        console.error("Error fetching weather data", message);
-        return err("Error fetching weather data");
-    }
-    const weatherData = uncheckedWeatherData;
-
-    //writeFile('/tmp/everything.json', JSON.stringify({currentAirPollutionData, weatherData}, null, 2));
-
-    const bodyGenerator = new HtmlBodyGenerator(cityData, currentAirPollutionData, weatherData);
-    const htmlBody = bodyGenerator.generateHtmlBody();
-
-    const finalHtml = htmlSkeleton
-        .replace("/* CSS-REPLACE */", cssBody)
-        .replace("<!-- BODY-REPLACE -->", htmlBody);
-
-    return {html: finalHtml};
-}
+// TODO: move files from here into their own files
+// TODO: add tests
+// TODO: add documentation
+// TODO: add caching (simple file/memory cache for now is plenty, so you can run it locally many times for testing)
+//          (hash based on the location object? or just on which location was actually used / passed to the API?)
+// TODO: look up the granularity of lat/long that's most useful to cap at
 
 async function getKeyAndSkeletons() {
     const [htmlSkeleton, cssBody] = await Promise.all([
@@ -50,17 +23,6 @@ async function getKeyAndSkeletons() {
     ].map(p => p.then(x => x.trim())));
 
     return {htmlSkeleton, cssBody};
-}
-
-// TODO: abstract away, and also allow for reading from env var
-// TODO: document
-// TODO: set up data structures and way to decide which/if api to use
-async function getLocationIQApiKey(): Promise<string> {
-    if (process.env.LOCATIONIQ_API_KEY) {
-        return process.env.LOCATIONIQ_API_KEY.trim();
-    }
-    const locationIQApiKey = await readFile('.locationiq_api_key', 'utf8');
-    return locationIQApiKey.trim();
 }
 
 async function writeOutTestFile(finalHtml: string) {
@@ -75,8 +37,6 @@ async function writeOutTestFile(finalHtml: string) {
     await writeFile(targetFile, finalHtml, 'utf8');
     console.log(`Succesfully wrote output to ${targetFile}`);
 }
-
-
 
 (async () => {
     const {htmlSkeleton, cssBody} = await getKeyAndSkeletons();

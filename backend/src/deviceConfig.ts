@@ -22,9 +22,9 @@ export interface DeviceConfig {
 export type ScreenOrientation = "portrait" | "landscape";
 export type DeviceType = "mobile" | "tablet" | "desktop" | "tv" | "watch" | "e-reader" | "other";
 export type ScreenType = "lcd-ish" | "e-paper";
-export type SupportsJS = "es6" | "es5" | "ancient-android" | "no";
+export type SupportsJS = "yes" | "ancient-android" | "no";
 
-const DEVICES = {
+export const DEVICES = {
     "nooksimpletouch-electricsign": {
         screenResolution: {
             width: 600,
@@ -38,7 +38,7 @@ const DEVICES = {
     },
     
 } as const;
-type DeviceID = keyof typeof DEVICES;
+export type DeviceID = keyof typeof DEVICES;
 
 // User agent for Nook Simple Touch (BNRV300) default browser, which can support JavaScript if it's explicitly enabled in settings
 // User-Agent: Mozilla/5.0 (Linux; U; Android 2.1; en-us; NOOK BNRV300 Build/ERD79) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Mobile Safari/530.17

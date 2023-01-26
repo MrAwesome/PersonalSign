@@ -37,6 +37,7 @@
     "@types/node-fetch": "^2.6.2",
     "@types/node-geocoder": "^3.24.5",
     "colors": "^1.4.0",
+    "http": "^0.0.1-security",
     "node-fetch": "2.6.5",
     "node-geocoder": "^4.2.0",
     "openweather-api-node": "^2.0.0",

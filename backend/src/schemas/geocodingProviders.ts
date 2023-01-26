@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {mandatoryStringValue} from './utils';
 
-const locationProvidersSchema = z.union([
+const geocodingProvidersSchema = z.union([
     z.literal('here'),
     z.literal('openstreetmap'),
     z.literal('opendatafrance'),
@@ -72,8 +72,8 @@ const googleOptionsSchema = z.object({
     channel: z.string().optional(),
 });
 
-export const locationOptionsSchema = z.object({
-    activeProvider: locationProvidersSchema,
+export const geocodingOptionsSchema = z.object({
+    activeProvider: geocodingProvidersSchema,
     options: z.object({
         here: hereOptionsSchema.optional(),
         openstreetmap: openStreetMapOptionsSchema.optional(),

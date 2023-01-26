@@ -2,6 +2,8 @@ import OpenWeatherAPI, {Everything as WeatherEverything, Options as OpenWeatherO
 import {LocationData, ReturnedError, UncheckedAllData} from './types';
 import {tryProm} from './utils';
 
+// TODO: handle location data not being available, give graceful error which includes the given address and offers alternatives
+
 export class DataFetcher {
     private openWeatherAPI: OpenWeatherAPI | null = null;
 

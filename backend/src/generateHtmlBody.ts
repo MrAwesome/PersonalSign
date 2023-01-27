@@ -1,5 +1,5 @@
 import {CityData, ImperialOrMetric} from "./types";
-import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
+import {AirPollution, DailyTemperatures, Everything as WeatherEverything} from "openweather-api-node";
 import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL} from "./utils";
 
 
@@ -24,6 +24,8 @@ export class HtmlBodyGenerator {
         this.getPrecipitationChanceNext48HoursOnlyBars = this.getPrecipitationChanceNext48HoursOnlyBars.bind(this);
         this.getIconsNext12Hours = this.getIconsNext12Hours.bind(this);
         this.generateHtmlBody = this.generateHtmlBody.bind(this);
+        this.getTempNext12Hours = this.getTempNext12Hours.bind(this);
+        this.getDailyTempDisplay = this.getDailyTempDisplay.bind(this);
     }
 
     generateHtmlBody(): string {
@@ -54,6 +56,11 @@ export class HtmlBodyGenerator {
             precipNextHour = `%P% Now/10/30: %PP% ${precipNow}mm/${precipTen}mm/${precipThirty}mm <br />`;
         }
 
+        const tempNext12Hours = this.getTempNext12Hours();
+
+        const tempRangeToday = this.getDailyTempDisplay(daily[0].weather.temp);
+        const tempRangeTomorrow = this.getDailyTempDisplay(daily[1].weather.temp);
+
 
         const preProcessedHtml = `
         <div>
@@ -76,8 +83,11 @@ export class HtmlBodyGenerator {
 
                 <br />
 
-                %P% Today: %PP% ${daily[0].weather.description} <br />
-                %P% Tomorrow: %PP% ${daily[1].weather.description} <br />
+                %P% Today: %PP% ${daily[0].weather.description} ${tempRangeToday} <br />
+                %P% Tomorrow: %PP% ${daily[1].weather.description} ${tempRangeTomorrow} <br />
+
+                ${tempNext12Hours}
+
 
             </div>
         </div>
@@ -121,6 +131,47 @@ export class HtmlBodyGenerator {
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
+    }
+
+    getDailyTempDisplay(temps: DailyTemperatures): string {
+        const {min, max} = temps;
+
+        const tempDisplay = [
+            min.toFixed(0),
+            max.toFixed(0),
+            //morn.toFixed(0),
+            //day.toFixed(0),
+            //eve.toFixed(0),
+            //night.toFixed(0),
+        ].join('-');
+
+        return `<div class="daily-temp-display">(${tempDisplay})</div>`;
+    }
+
+    getTempNext12Hours(): string {
+        const {weatherData} = this;
+        const {hourly} = weatherData;
+
+        // Don't bother showing the current hour if it's almost over
+        const now = new Date();
+        let startHour = 0;
+        let endHour = 12;
+        if (now.getMinutes() > 45) {
+            startHour = 1;
+            endHour = 13;
+        }
+
+        const temps = hourly
+            .slice(startHour, endHour)
+            .map(({weather}) => weather.temp.cur.toFixed(0));
+
+        const topRow = temps.slice(0, 6);
+        const bottomRow = temps.slice(6, 12);
+
+        const tempsRows = [topRow, bottomRow].map(x => x.join(', ')).join('<br />');
+
+        return `%P% Next 12 hours: %PP% <div class="hourly-temps">${tempsRows}</div>`;
+
     }
 
     getIconsNext12Hours(): string {

@@ -110,3 +110,17 @@ table th {
 .hourly-icon {
     margin-left: -10px;
 }
+
+.hourly-temps {
+    display: inline-block;
+    border: 1px solid #333333;
+    font-size: 20px;
+    padding: 2px 6px;
+    line-height: 1;
+}
+
+.daily-temp-display {
+    font-size: 20px;
+    font-style: italic;
+    display: inline-block;
+}

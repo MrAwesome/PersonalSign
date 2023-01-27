@@ -62,6 +62,7 @@ async function getKeyAndSkeletons() {
         return finalHtml;
 
     };
+    console.log("Starting HTTP server on port 8080.");
     await startSimpleHttpServer(generateHtml);
     //await writeOutTestFile(finalHtml);
 })();

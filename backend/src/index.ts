@@ -63,6 +63,15 @@ async function getKeyAndSkeletons() {
 
     };
     console.log("Starting HTTP server on port 8080.");
-    await startSimpleHttpServer(generateHtml);
+    while (true) {
+        try {
+            await startSimpleHttpServer(generateHtml);
+            break;
+        } catch (e) {
+            console.error("Error in HTTP server: ", e);
+            console.error("Retrying in 5 seconds...");
+            await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+    }
     //await writeOutTestFile(finalHtml);
 })();

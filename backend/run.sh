@@ -15,8 +15,10 @@ yarn
 #(cd "${tmpdir}" && php -S 0.0.0.0:8000) &
 
 # Generate the index.html file that web server will serve
-#while :; do
-yarn run ts-node src/index.ts
-    #sleep 600
+while :; do
+    yarn run ts-node src/index.ts
+    ## Restart the web server in case of a crash, hopefully this is not necessary:
+    echo "Server was shut down, restarting..."
+    sleep 10
     #git pull --rebase --autostash
-#done
+done

@@ -11,6 +11,10 @@ const readFile = fs.promises.readFile;
 //const mkdir = fs.promises.mkdir;
 //const exists = fs.promises.access;
 
+// TODO: include weather alerts
+// TODO: AQI forecast
+// TODO: OpenAI GPT-3 for weather descriptions
+// TODO: try background-color + height instead of unicode block chars
 // TODO: move files from here into their own files
 // TODO: add tests
 // TODO: add documentation
@@ -18,7 +22,7 @@ const readFile = fs.promises.readFile;
 //          (hash based on the location object? or just on which location was actually used / passed to the API?)
 // TODO: look up the granularity of lat/long that's most useful to cap at
 
-async function getKeyAndSkeletons() {
+async function getHtmlAndStyleFiles() {
     const [htmlSkeleton, cssBody] = await Promise.all([
         readFile('./src/skeleton.html', 'utf8'),
         readFile('./src/style.css', 'utf8'),
@@ -27,21 +31,8 @@ async function getKeyAndSkeletons() {
     return {htmlSkeleton, cssBody};
 }
 
-//async function writeOutTestFile(finalHtml: string) {
-//    const memExists = (await exists('/mem').catch(() => false)) !== false;
-//
-//    const dirPrefix = memExists ? '/mem' : '/tmp';
-//    const dir = `${dirPrefix}/${DIR_NAME}`;
-//
-//    await mkdir(dir, {recursive: true});
-//
-//    const targetFile = `${dir}/index.html`;
-//    await writeFile(targetFile, finalHtml, 'utf8');
-//    console.log(`Succesfully wrote output to ${targetFile}`);
-//}
-
 (async () => {
-    const {htmlSkeleton, cssBody} = await getKeyAndSkeletons();
+    const {htmlSkeleton, cssBody} = await getHtmlAndStyleFiles();
     //const cityData = ZIP_TO_DATA['94103'];
 
     // if config.json doesn't exist, create it and populate it with default values: openweathermap as weather provider, openstreetmap as location provider

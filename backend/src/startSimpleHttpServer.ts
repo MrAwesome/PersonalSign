@@ -3,6 +3,10 @@ import {ImperialOrMetric} from './types';
 
 type WeatherHandler = (coords: [number, number], imperialOrMetric: ImperialOrMetric) => Promise<string>;
 
+const PORT: number = process.env.PERSONALSIGN_PORT === undefined 
+    ? 8080 
+    : parseInt(process.env.PERSONALSIGN_PORT, 10);
+
 export async function startSimpleHttpServer(weatherHandler: WeatherHandler): Promise<void> {
     const server = http.createServer(async (req, res) => {
         try {
@@ -13,7 +17,14 @@ export async function startSimpleHttpServer(weatherHandler: WeatherHandler): Pro
             res.end("<html><body><h1>Server Error</h1></body></html>");
         }
     });
-    server.listen(8080);
+    server.listen(PORT);
+
+    const addr = server.address();
+    if (typeof addr === 'string') {
+        console.log("Started HTTP server on:", addr);
+    } else {
+        console.log("Started HTTP server on port:", addr?.port);
+    }
 }
 
 async function handleRequest(

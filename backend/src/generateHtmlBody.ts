@@ -1,6 +1,7 @@
 import {CityData, ImperialOrMetric} from "./types";
 import {AirPollution, DailyTemperatures, Everything as WeatherEverything} from "openweather-api-node";
 import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL} from "./utils";
+import {find as geofind} from "geo-tz";
 
 
 //import geocoder from "node-geocoder";
@@ -34,13 +35,22 @@ export class HtmlBodyGenerator {
 
         const currentWeather = current.weather;
 
+        let timeZone: string | undefined;
+        if (Array.isArray(cityData.location.latLong)) {
+            const [lat, lon] = cityData.location.latLong;
+            const foundTimeZones = geofind(lat, lon);
+            if (foundTimeZones.length > 0) {
+                timeZone = foundTimeZones[0];
+            }
+        }
+
         const now = new Date();
 
         const monthAndDay = now
-            .toLocaleDateString('en-US', {month: 'short', day: 'numeric', timeZone: process.env.TZ_NAME});
+            .toLocaleDateString('en-US', {month: 'short', day: 'numeric', timeZone});
 
         const hoursAndMin = now
-            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', timeZone: process.env.TZ_NAME})
+            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', timeZone})
             .replace(/\s/g, ' ')
 
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);

@@ -36,6 +36,10 @@ export class HtmlBodyGenerator {
 
         const now = new Date();
 
+        if (process.env.TZ_OFFSET) {
+            now.setHours(now.getHours() + parseInt(process.env.TZ_OFFSET));
+        }
+
         const monthAndDay = now
             .toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
 

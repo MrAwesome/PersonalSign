@@ -7,7 +7,7 @@ const PORT: number = process.env.PERSONALSIGN_PORT === undefined
     ? 8080 
     : parseInt(process.env.PERSONALSIGN_PORT, 10);
 
-export async function startSimpleHttpServer(weatherHandler: WeatherHandler): Promise<void> {
+export async function startSimpleHttpServer(weatherHandler: WeatherHandler): Promise<http.Server> {
     const server = http.createServer(async (req, res) => {
         try {
             await handleRequest(weatherHandler, req, res);
@@ -25,6 +25,8 @@ export async function startSimpleHttpServer(weatherHandler: WeatherHandler): Pro
     } else {
         console.log("Started HTTP server on port:", addr?.port);
     }
+
+    return server;
 }
 
 async function handleRequest(
@@ -38,10 +40,9 @@ async function handleRequest(
         if (url.searchParams.get('access_token') !== process.env.ACCESS_TOKEN) {
             res.writeHead(401);
             res.end("<html><body><h1>401: Unauthorized</h1><p>You must provide an access_token parameter. The sysadmin will know it.</body></html>");
+            return;
         }
-    }
-    
-    if (url.pathname === '/transit') {
+    } else if (url.pathname === '/transit') {
         const inn = url.searchParams.get('inn')!;
         const [lat, lon] = inn.split(',').map(parseFloat);
         const data = `stub: ${lat},${lon}`;

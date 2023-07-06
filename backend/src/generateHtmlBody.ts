@@ -36,15 +36,11 @@ export class HtmlBodyGenerator {
 
         const now = new Date();
 
-        if (process.env.TZ_OFFSET) {
-            now.setHours(now.getHours() + parseInt(process.env.TZ_OFFSET));
-        }
-
         const monthAndDay = now
-            .toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+            .toLocaleDateString('en-US', {month: 'short', day: 'numeric', timeZone: process.env.TZ_NAME});
 
         const hoursAndMin = now
-            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric'})
+            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', timeZone: process.env.TZ_NAME})
             .replace(/\s/g, ' ')
 
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);

@@ -22,6 +22,14 @@ async function handleRequest(
     res: http.ServerResponse
 ): Promise<void> {
     const url = new URL(req.url!, `http://${req.headers.host}`);
+    
+    if (process.env.ACCESS_TOKEN !== undefined) {
+        if (url.searchParams.get('access_token') !== process.env.ACCESS_TOKEN) {
+            res.writeHead(401);
+            res.end("<html><body><h1>401: Unauthorized</h1><p>You must provide an access_token parameter. The sysadmin will know it.</body></html>");
+        }
+    }
+    
     if (url.pathname === '/transit') {
         const inn = url.searchParams.get('inn')!;
         const [lat, lon] = inn.split(',').map(parseFloat);

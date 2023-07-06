@@ -42,7 +42,9 @@ async function handleRequest(
             res.end("<html><body><h1>401: Unauthorized</h1><p>You must provide an access_token parameter. The sysadmin will know it.</body></html>");
             return;
         }
-    } else if (url.pathname === '/transit') {
+    }
+
+    if (url.pathname === '/transit') {
         const inn = url.searchParams.get('inn')!;
         const [lat, lon] = inn.split(',').map(parseFloat);
         const data = `stub: ${lat},${lon}`;

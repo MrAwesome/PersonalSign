@@ -59,15 +59,29 @@ export class HtmlBodyGenerator {
 
         const windGust = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${currentWeather.wind.gust.toFixed(0)}mph <br />` : '';
 
-        const [precipNow, precipTen, precipThirty] = [
-            minutely[0].weather?.rain ?? 0,
-            minutely[10].weather?.rain ?? 0,
-            minutely[30].weather?.rain ?? 0
-        ];
+        let positivePrecip = false;
+        const upcomingPrecipitation = [0,10,30].map(i => {
+            const precip = minutely[i]?.weather?.rain ?? 0;
+            if (precip >= 0.1) {
+                positivePrecip = true;
+            }
+
+            return {
+                minAway: i,
+                amountMm: precip.toFixed(1),
+            }
+        });
 
         let precipNextHour = '';
-        if (precipNow + precipTen + precipThirty > 0) {
-            precipNextHour = `%P% Now/10/30: %PP% ${precipNow}mm/${precipTen}mm/${precipThirty}mm <br />`;
+        if (positivePrecip) {
+            const precipNextHourAmount = upcomingPrecipitation.map(({amountMm}) => {
+                return `${amountMm}`;
+            }).join('/');
+            const precipNextHourMin = upcomingPrecipitation.map(({minAway}) => {
+                return `${minAway}`;
+            }).join('/');
+            //precipNextHour = `%P% Now/10/30: %PP% ${precipNow}mm/${precipTen}mm/${precipThirty}mm <br />`;
+            precipNextHour = `%P% Precipitation ${precipNextHourMin}min (mm): %PP% ${precipNextHourAmount} <br />`;
         }
 
         const tempNext12Hours = this.getTempNext12Hours();

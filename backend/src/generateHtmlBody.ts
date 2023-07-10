@@ -59,7 +59,11 @@ export class HtmlBodyGenerator {
 
         const windGust = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${currentWeather.wind.gust.toFixed(0)}mph <br />` : '';
 
-        const [precipNow, precipTen, precipThirty] = [minutely[0].weather.rain, minutely[10].weather.rain, minutely[30].weather.rain];
+        const [precipNow, precipTen, precipThirty] = [
+            minutely[0].weather?.rain ?? 0,
+            minutely[10].weather?.rain ?? 0,
+            minutely[30].weather?.rain ?? 0
+        ];
 
         let precipNextHour = '';
         if (precipNow + precipTen + precipThirty > 0) {

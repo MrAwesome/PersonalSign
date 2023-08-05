@@ -41,7 +41,7 @@
     "http": "^0.0.1-security",
     "node-fetch": "2.6.5",
     "node-geocoder": "^4.2.0",
-    "openweather-api-node": "^2.0.0",
+    "openweather-api-node": "^3.1.0",
     "zod": "^3.20.2"
   }
 }

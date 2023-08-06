@@ -57,7 +57,19 @@ export class HtmlBodyGenerator {
 
         const precipTable = this.getPrecipitationChanceNext48HoursOnlyBars();
 
-        const windGust = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${currentWeather.wind.gust.toFixed(0)}mph <br />` : '';
+        const windUnit = this.imperialOrMetric === 'imperial' ? 'mph' : 'kmh';
+
+        // 1m/s = 3.6km/h
+        const windSpeedMultiplier = this.imperialOrMetric === 'imperial' ? 1 : 3.6;
+
+        const windSpeedNum = parseInt(currentWeather.wind.speed.toFixed(0)) * windSpeedMultiplier;
+        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum}${windUnit} <br />`;
+
+        let windGustText = '';
+        if (currentWeather.wind.gust) {
+            const windGustNum = parseInt(currentWeather.wind.gust?.toFixed(0)) * windSpeedMultiplier;
+            windGustText = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${windGustNum}${windUnit} <br />` : '';
+        }
 
         let positivePrecip = false;
         const upcomingPrecipitation = [0,10,30].map(i => {
@@ -102,8 +114,8 @@ export class HtmlBodyGenerator {
                 %P% AQI: %PP% ${currentAirPollutionData.aqi} <br />
                 %P% Temp: %PP% ${currentWeather.temp.cur.toFixed(0)}%DEG% %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}%DEG%%P%)%PP% <br />
                 %P% Humidity: %PP% ${currentWeather.humidity}% <br />
-                %P% Wind Speed: %PP% ${currentWeather.wind.speed.toFixed(0)}mph <br />
-                ${windGust}
+                ${windSpeedText}
+                ${windGustText}
                 %P% Pressure: %PP% ${pressureVariancePercent} <br />
 
                 ${precipNextHour}

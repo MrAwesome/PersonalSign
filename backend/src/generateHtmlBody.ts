@@ -57,7 +57,7 @@ export class HtmlBodyGenerator {
 
         const precipTable = this.getPrecipitationChanceNext48HoursOnlyBars();
 
-        const windUnit = this.imperialOrMetric === 'imperial' ? 'mph' : 'kmh';
+        const windUnit = this.imperialOrMetric === 'imperial' ? 'mph' : 'km';
 
         // 1m/s = 3.6km/h
         const windSpeedMultiplier = this.imperialOrMetric === 'imperial' ? 1 : 3.6;

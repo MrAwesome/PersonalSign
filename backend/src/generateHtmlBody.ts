@@ -62,13 +62,13 @@ export class HtmlBodyGenerator {
         // 1m/s = 3.6km/h
         const windSpeedMultiplier = this.imperialOrMetric === 'imperial' ? 1 : 3.6;
 
-        const windSpeedNum = parseInt(currentWeather.wind.speed.toFixed(0)) * windSpeedMultiplier;
-        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum}${windUnit} <br />`;
+        const windSpeedNum = currentWeather.wind.speed * windSpeedMultiplier;
+        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} <br />`;
 
         let windGustText = '';
         if (currentWeather.wind.gust) {
-            const windGustNum = parseInt(currentWeather.wind.gust?.toFixed(0)) * windSpeedMultiplier;
-            windGustText = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${windGustNum}${windUnit} <br />` : '';
+            const windGustNum = currentWeather.wind.gust * windSpeedMultiplier;
+            windGustText = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${windGustNum.toFixed(0)}${windUnit} <br />` : '';
         }
 
         let positivePrecip = false;

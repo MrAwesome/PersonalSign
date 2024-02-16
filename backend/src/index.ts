@@ -4,7 +4,7 @@ import fs from 'fs';
 import readAndValidateConfig from './readAndValidateConfig';
 import {generateFinalHtml} from './generateHtml';
 import {startSimpleHttpServer} from './startSimpleHttpServer';
-import {ImperialOrMetric, LocationData} from './types';
+import {ImperialOrMetric, LocationData, UserAgentInfo} from './types';
 
 const readFile = fs.promises.readFile;
 //const writeFile = fs.promises.writeFile;
@@ -41,10 +41,10 @@ async function getHtmlAndStyleFiles() {
     const config = await readAndValidateConfig();
 
     const openWeatherMapToken = config.weather.options.openweathermap.apiKey;
-    const generateHtml = async (locationData: LocationData, imperialOrMetric: ImperialOrMetric) => {
+    const generateHtml = async (ua: UserAgentInfo, locationData: LocationData, imperialOrMetric: ImperialOrMetric) => {
         // TODO: Fix displayname to come from cached geocoding
         const cityData = {location: locationData, displayName: ""};
-        const finalHtmlOrErr = await generateFinalHtml(cityData, openWeatherMapToken, htmlSkeleton, cssBody, imperialOrMetric);
+        const finalHtmlOrErr = await generateFinalHtml(ua, cityData, openWeatherMapToken, htmlSkeleton, cssBody, imperialOrMetric);
         if ("error" in finalHtmlOrErr) {
             return `Error: ${finalHtmlOrErr.error}`;
         }

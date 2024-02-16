@@ -45,3 +45,7 @@ type AtLeastOneField = {
 }
 
 export type LocationData = LocationDataOptional & AtLeastOneField;
+
+export interface UserAgentInfo {
+    skipUnicodeTextModeOverride?: boolean,
+}

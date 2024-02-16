@@ -1,8 +1,8 @@
 import http from 'http';
-import {ImperialOrMetric, LocationData} from './types';
-import {locationDataFromText} from './utils';
+import {ImperialOrMetric, LocationData, UserAgentInfo} from './types';
+import {getUserAgentInfo, locationDataFromText} from './utils';
 
-type WeatherHandler = (locationData: LocationData, imperialOrMetric: ImperialOrMetric) => Promise<string>;
+type WeatherHandler = (ua: UserAgentInfo, locationData: LocationData, imperialOrMetric: ImperialOrMetric) => Promise<string>;
 
 const PORT: number = process.env.PERSONALSIGN_PORT === undefined 
     ? 8080 
@@ -45,6 +45,8 @@ async function handleRequest(
         }
     }
 
+    const ua = getUserAgentInfo(req.headers['user-agent']);
+
     if (url.pathname === '/transit') {
         const inn = url.searchParams.get('inn')!;
         const [lat, lon] = inn.split(',').map(parseFloat);
@@ -56,7 +58,7 @@ async function handleRequest(
         const imperialOrMetric: ImperialOrMetric = url.searchParams.get('units') === 'imperial' ? 'imperial' : 'metric';
         const at = url.searchParams.get('at')!.trim();
         const locationData = locationDataFromText(at);
-        const html = await weatherHandler(locationData as LocationData, imperialOrMetric);
+        const html = await weatherHandler(ua, locationData, imperialOrMetric);
 
         res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
         res.end(html);

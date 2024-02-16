@@ -1,5 +1,5 @@
 import {AVERAGE_PRESSURE} from "./data";
-import {LocationData, ReturnedError} from "./types";
+import {LocationData, ReturnedError, UserAgentInfo} from "./types";
 
 export function noop(_: any) {}
 
@@ -48,10 +48,10 @@ export function getBarCharacter(percentage: number): string {
     return BAR_CHARS[index].replace("x", "&nbsp;");
 }
 
-export function degreeToArrow(degree: number) {
-    const arrows = ['↑', '↗️', '➡️', '↘️', '↓', '↙', '⬅️', '↖️'];
+export function degreeToArrow(degree: number): string {
+    const arrows = ['↑︎', '↗️︎', '➡️︎', '↘️︎', '↓︎', '↙︎', '⬅️︎', '↖️︎'];
     const index = Math.round(degree % 360 / 45);
-    return arrows[index >= 8 ? 0 : index]; // + "&#xFE0E;";
+    return arrows[index >= 8 ? 0 : index];
 }
 
 export function locationDataFromText(at: string): LocationData {
@@ -65,6 +65,19 @@ export function locationDataFromText(at: string): LocationData {
         locationData.locationName = at;
     }
     return locationData as LocationData;
+}
+
+export function getUserAgentInfo(uaRaw: string | undefined): UserAgentInfo {
+    if (uaRaw === undefined) {
+        return {};
+    }
+
+    const ua: UserAgentInfo = {};
+    if (uaRaw.includes("BNRV300")) {
+        ua.skipUnicodeTextModeOverride = true;
+    }
+
+    return ua;
 }
 
 export async function tryProm<T>(fn: () => Promise<T>): Promise<T | ReturnedError> {

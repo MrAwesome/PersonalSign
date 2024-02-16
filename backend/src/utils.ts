@@ -74,6 +74,7 @@ export function getUserAgentInfo(uaRaw: string | undefined): UserAgentInfo {
 
     const ua: UserAgentInfo = {};
     if (uaRaw.includes("BNRV300")) {
+        console.log("From nook:", uaRaw);
         ua.skipUnicodeTextModeOverride = true;
     }
 

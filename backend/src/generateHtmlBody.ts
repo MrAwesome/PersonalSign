@@ -70,7 +70,6 @@ export class HtmlBodyGenerator {
         //const arrowEmojiSuffix = ua.skipUnicodeTextModeOverride === true ? "" : "\uFE0E";
 
         const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator} <br />`;
-        console.log(windSpeedText);
 
         let windGustText = '';
         if (currentWeather.wind.gust) {

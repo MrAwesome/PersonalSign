@@ -1,6 +1,6 @@
 import {CityData, ImperialOrMetric, UserAgentInfo} from "./types";
 import {AirPollution, DailyTemperatures, Everything as WeatherEverything} from "openweather-api-node";
-import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow, noop} from "./utils";
+import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow} from "./utils";
 import {find as geofind} from "geo-tz";
 
 
@@ -28,11 +28,10 @@ export class HtmlBodyGenerator {
         this.generateHtmlBody = this.generateHtmlBody.bind(this);
         this.getTempNext12Hours = this.getTempNext12Hours.bind(this);
         this.getDailyTempDisplay = this.getDailyTempDisplay.bind(this);
-        noop(this.ua);
     }
 
     generateHtmlBody(): string {
-        const {cityData, weatherData, currentAirPollutionData} = this;
+        const {ua, cityData, weatherData, currentAirPollutionData} = this;
         const {current, minutely, daily} = weatherData;
 
         const currentWeather = current.weather;
@@ -67,9 +66,9 @@ export class HtmlBodyGenerator {
         const windSpeedNum = currentWeather.wind.speed * windSpeedMultiplier;
 
         const windDirectionIndicator = degreeToArrow(currentWeather.wind.deg)
-        //const arrowEmojiSuffix = ua.skipUnicodeTextModeOverride === true ? "" : "\uFE0E";
+        const arrowEmojiSuffix = ua.skipUnicodeTextModeOverride === true ? "" : "\uFE0E";
 
-        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator} <br />`;
+        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator}${arrowEmojiSuffix} <br />`;
 
         let windGustText = '';
         if (currentWeather.wind.gust) {

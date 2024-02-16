@@ -115,7 +115,7 @@ table th {
 .hourly-temps {
     display: inline-block;
     border: 1px solid #333333;
-    font-size: 20px;
+    font-size: 24px;
     padding: 2px 6px;
     line-height: 1;
 }

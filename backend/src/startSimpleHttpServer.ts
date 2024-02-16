@@ -1,5 +1,6 @@
 import http from 'http';
 import {ImperialOrMetric, LocationData} from './types';
+import {locationDataFromText} from './utils';
 
 type WeatherHandler = (locationData: LocationData, imperialOrMetric: ImperialOrMetric) => Promise<string>;
 
@@ -54,16 +55,7 @@ async function handleRequest(
     } else if (url.pathname === '/weather') {
         const imperialOrMetric: ImperialOrMetric = url.searchParams.get('units') === 'imperial' ? 'imperial' : 'metric';
         const at = url.searchParams.get('at')!.trim();
-        const locationData: Partial<LocationData> = {};
-        if (at.match(/^\d{5}$/)) {
-            locationData.zipCode = at;
-        } else if (at.match(/^[\d\.\-]+,[\d\.\-]+$/)) {
-            console.log("GOT ONE");
-            const [lat, lon] = at.split(',').map(parseFloat);
-            locationData.latLong = [lat, lon];
-        } else {
-            locationData.locationName = at;
-        }
+        const locationData = locationDataFromText(at);
         const html = await weatherHandler(locationData as LocationData, imperialOrMetric);
 
         res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});

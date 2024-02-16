@@ -1,10 +1,10 @@
 import {AVERAGE_PRESSURE} from "./data";
-import {ReturnedError} from "./types";
+import {LocationData, ReturnedError} from "./types";
 
 export function noop(_: any) {}
 
 export function mod(n: number, m: number) {
-        return ((n % m) + m) % m;
+    return ((n % m) + m) % m;
 }
 
 export function calculatePressureVariancePercent(pressure: number): string {
@@ -49,9 +49,22 @@ export function getBarCharacter(percentage: number): string {
 }
 
 export function degreeToArrow(degree: number) {
-  const arrows = ['↑', '↗️', '➡️', '↘️', '↓', '↙', '⬅️', '↖️'];
-  const index = Math.round(degree % 360 / 45);
-  return arrows[index >= 8 ? 0 : index]+"&#xFE0E;";
+    const arrows = ['↑', '↗️', '➡️', '↘️', '↓', '↙', '⬅️', '↖️'];
+    const index = Math.round(degree % 360 / 45);
+    return arrows[index >= 8 ? 0 : index]; // + "&#xFE0E;";
+}
+
+export function locationDataFromText(at: string): LocationData {
+    const locationData: Partial<LocationData> = {};
+    if (at.match(/^\d{5}$/)) {
+        locationData.zipCode = at;
+    } else if (at.match(/^[\d\.\-]+,[\d\.\-]+$/)) {
+        const [lat, lon] = at.split(',').map(parseFloat);
+        locationData.latLong = [lat, lon];
+    } else {
+        locationData.locationName = at;
+    }
+    return locationData as LocationData;
 }
 
 export async function tryProm<T>(fn: () => Promise<T>): Promise<T | ReturnedError> {

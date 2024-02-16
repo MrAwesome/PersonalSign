@@ -34,11 +34,13 @@
   },
   "config": {},
   "dependencies": {
+    "@types/minimist": "^1.2.5",
     "@types/node-fetch": "^2.6.2",
     "@types/node-geocoder": "^3.24.5",
     "colors": "^1.4.0",
     "geo-tz": "^7.0.7",
     "http": "^0.0.1-security",
+    "minimist": "^1.2.8",
     "node-fetch": "2.6.5",
     "node-geocoder": "^4.2.0",
     "openweather-api-node": "^3.1.0",

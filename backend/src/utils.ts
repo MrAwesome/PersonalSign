@@ -48,6 +48,12 @@ export function getBarCharacter(percentage: number): string {
     return BAR_CHARS[index].replace("x", "&nbsp;");
 }
 
+export function degreeToArrow(degree: number) {
+  const arrows = ['↑', '↗️', '➡️', '↘️', '↓', '↙', '⬅️', '↖️'];
+  const index = Math.round(degree % 360 / 45);
+  return arrows[index >= 8 ? 0 : index]+"&#xFE0E;";
+}
+
 export async function tryProm<T>(fn: () => Promise<T>): Promise<T | ReturnedError> {
     try {
         return fn();

@@ -1,6 +1,6 @@
 import {CityData, ImperialOrMetric} from "./types";
 import {AirPollution, DailyTemperatures, Everything as WeatherEverything} from "openweather-api-node";
-import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL} from "./utils";
+import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow} from "./utils";
 import {find as geofind} from "geo-tz";
 
 
@@ -63,7 +63,10 @@ export class HtmlBodyGenerator {
         const windSpeedMultiplier = this.imperialOrMetric === 'imperial' ? 1 : 3.6;
 
         const windSpeedNum = currentWeather.wind.speed * windSpeedMultiplier;
-        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} <br />`;
+
+        const windDirectionIndicator = degreeToArrow(currentWeather.wind.deg);
+
+        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator} <br />`;
 
         let windGustText = '';
         if (currentWeather.wind.gust) {

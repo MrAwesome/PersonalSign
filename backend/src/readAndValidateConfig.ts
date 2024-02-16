@@ -62,7 +62,7 @@ function convertToJSON(configContents: string, source: string): any {
 }
 
 function parseConfig(unparsedConfig: any, source: string): any {
-    console.log(`Using config from ${source}...`);
+    process.stderr.write(`Using config from ${source}...`);
     const parsed = optionsSchema.safeParse(unparsedConfig);
 
     if (!parsed.success) {

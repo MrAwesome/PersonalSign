@@ -1,7 +1,7 @@
 import http from 'http';
-import {ImperialOrMetric} from './types';
+import {ImperialOrMetric, LocationData} from './types';
 
-type WeatherHandler = (coords: [number, number], imperialOrMetric: ImperialOrMetric) => Promise<string>;
+type WeatherHandler = (locationData: LocationData, imperialOrMetric: ImperialOrMetric) => Promise<string>;
 
 const PORT: number = process.env.PERSONALSIGN_PORT === undefined 
     ? 8080 
@@ -53,9 +53,18 @@ async function handleRequest(
         res.end(JSON.stringify(data));
     } else if (url.pathname === '/weather') {
         const imperialOrMetric: ImperialOrMetric = url.searchParams.get('units') === 'imperial' ? 'imperial' : 'metric';
-        const coords = url.searchParams.get('at')!;
-        const [lat, lon] = coords.split(',').map(parseFloat);
-        const html = await weatherHandler([lat, lon], imperialOrMetric);
+        const at = url.searchParams.get('at')!.trim();
+        const locationData: Partial<LocationData> = {};
+        if (at.match(/^\d{5}$/)) {
+            locationData.zipCode = at;
+        } else if (at.match(/^[\d\.\-]+,[\d\.\-]+$/)) {
+            console.log("GOT ONE");
+            const [lat, lon] = at.split(',').map(parseFloat);
+            locationData.latLong = [lat, lon];
+        } else {
+            locationData.locationName = at;
+        }
+        const html = await weatherHandler(locationData as LocationData, imperialOrMetric);
 
         res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
         res.end(html);

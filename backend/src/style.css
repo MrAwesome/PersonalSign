@@ -25,12 +25,13 @@ table{
 
 table td {
     border: 1px solid #333333;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding: 8px;
+    line-height: 1;
 }
 
 table th {
     border: 1px solid #333333;
+    font-style: italic;
 }
 
 .lilmage {
@@ -52,6 +53,11 @@ table th {
     padding-right: 8px;
     font-style: italic;
     font-size: 24px;
+}
+
+.bigbold {
+    display: inline-block;
+    font-weight: bold;
 }
 
 .uvi, .aqi, .temperature {
@@ -113,6 +119,7 @@ table th {
 }
 
 .hourly-temps {
+    margin-top: 5px;
     display: inline-block;
     border: 1px solid #333333;
     font-size: 24px;
@@ -124,4 +131,8 @@ table th {
     font-size: 24px;
     font-style: italic;
     display: inline-block;
+}
+
+.alerts {
+    margin-top: 10px;
 }

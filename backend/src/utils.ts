@@ -27,6 +27,18 @@ export function getDateWithOffset(dt: number, timezone_offset: number): Date {
     return new Date((dt + timezone_offset) * 1000);
 }
 
+export function getDateAsTimeDay(dt: number): string {
+    const a = new Date(dt * 1000);
+    let hour = a.getHours();
+    const month = a.toLocaleString('default', { month: 'short' });
+    const day = a.getDate();
+    const ampm = hour >= 12 ? 'pm' : 'am';
+    hour = hour % 12;
+    hour = hour ? hour : 12; // '0' should be '12'
+
+    return `${month} ${day}, ${hour}${ampm}`;
+}
+
 export function getAMPMHourOnly(date: Date): string {
     return date
         .toLocaleTimeString("en-US", {hour: "numeric", hour12: true})
@@ -59,7 +71,7 @@ export function locationDataFromText(at: string): LocationData {
     const locationData: Partial<LocationData> = {};
     if (at.match(/^\d{5}$/)) {
         locationData.zipCode = at;
-    } else if (at.match(/^[\d\.\-]+,[\d\.\-]+$/)) {
+    } else if (at.match(/^[\d\.\-]+, *[\d\.\-]+$/)) {
         const [lat, lon] = at.split(',').map(parseFloat);
         locationData.latLong = [lat, lon];
     } else {

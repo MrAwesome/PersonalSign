@@ -1,6 +1,6 @@
 import {CityData, ImperialOrMetric, UserAgentInfo} from "./types";
 import {AirPollution, DailyTemperatures, Everything as WeatherEverything} from "openweather-api-node";
-import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow, noop} from "./utils";
+import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow, noop, getDateAsTimeDay} from "./utils";
 import {find as geofind} from "geo-tz";
 
 
@@ -13,7 +13,6 @@ import {find as geofind} from "geo-tz";
 //    console.log((Date.now() - now) / 1000);
 //    console.log(res);
 //});
-
 
 export class HtmlBodyGenerator {
     constructor(
@@ -107,6 +106,23 @@ export class HtmlBodyGenerator {
         const tempRangeToday = this.getDailyTempDisplay(daily[0].weather.temp);
         const tempRangeTomorrow = this.getDailyTempDisplay(daily[1].weather.temp);
 
+        let alertText = ""
+        if ("alerts" in weatherData) {
+            if (weatherData.alerts !== undefined && weatherData.alerts.length > 0) {
+                alertText += `<table class="alerts">
+                <th>Alert</th>
+                <th>Ends</th>
+                `;
+
+                for (const a of weatherData.alerts) {
+                    alertText += `<tr>`;
+                    alertText += `<td>%B%${a.event}%BB%</td>`;
+                    alertText += `<td>${getDateAsTimeDay(a.end)}</td>`;
+                    alertText += `</tr>`;
+                }
+                alertText += `</table>`;
+            }
+        }
 
         const preProcessedHtml = `
         <div>
@@ -117,9 +133,9 @@ export class HtmlBodyGenerator {
                 </div>
             </div>
             <div>
-                %P% AQI: %PP% ${currentAirPollutionData.aqi} <br />
-                %P% Temp: %PP% ${currentWeather.temp.cur.toFixed(0)}%DEG% %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}%DEG%%P%)%PP% <br />
+                %P% Temp: %PP% %B%${currentWeather.temp.cur.toFixed(0)}%DEG%%BB% %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}%DEG%%P%)%PP% <br />
                 %P% Humidity: %PP% ${currentWeather.humidity}% <br />
+                %P% AQI: %PP% ${currentAirPollutionData.aqiName} %P%(PM2.5: %PP%${currentAirPollutionData.components.pm2_5}%P%)%PP% <br />
                 ${windSpeedText}
                 ${windGustText}
                 %P% Pressure: %PP% ${pressureVariancePercent} <br />
@@ -134,6 +150,7 @@ export class HtmlBodyGenerator {
 
                 ${tempNext12Hours}
 
+                ${alertText}
 
             </div>
         </div>
@@ -142,7 +159,9 @@ export class HtmlBodyGenerator {
         const processedHtml = preProcessedHtml
             .replace(/%DEG%/g, this.imperialOrMetric === 'imperial' ? '°F' : '°C')
             .replace(/%P%/g, '<div class="prefix">')
-            .replace(/%PP%/g, '</div>');
+            .replace(/%PP%/g, '</div>')
+            .replace(/%B%/g, '<div class="bigbold">')
+            .replace(/%BB%/g, '</div>');
 
         return processedHtml;
     }

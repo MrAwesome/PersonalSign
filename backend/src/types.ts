@@ -20,7 +20,7 @@ export type ImperialOrMetric = 'imperial' | 'metric';
 export interface UncheckedAllData {
     uncheckedWeatherData: WeatherEverything | ReturnedError;
     uncheckedCurrentAirPollutionData: AirPollution | ReturnedError;
-    uncheckedForecastedAirPollutionData: AirPollution[] | ReturnedError;
+    //uncheckedForecastedAirPollutionData: AirPollution[] | ReturnedError;
 }
 
 export interface CityData {

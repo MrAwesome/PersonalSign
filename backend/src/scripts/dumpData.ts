@@ -6,7 +6,7 @@ import {locationDataFromText} from "../utils";
 let at = "NYC";
 const args = parseArgs(process.argv.slice(2), {boolean: true});
 
-process.stderr.write(JSON.stringify(args, undefined, 4));
+process.stderr.write(JSON.stringify(args, undefined, 4)+"\n");
 
 if (args._.length === 0) {
     process.stderr.write("No location argument given, defaulting to 'NYC'.")
@@ -23,8 +23,8 @@ if (args._.length === 0) {
     let res: any;
     if (args.aqi) {
         res = await dataFetcher.getCurrentAirPollutionData();
-    } else if (args.futureaqi) {
-        res = await dataFetcher.getForecastedAirPollutionData();
+    //} else if (args.futureaqi) {
+        //res = await dataFetcher.getForecastedAirPollutionData();
     } else {
         res = await dataFetcher.getAllData();
     }

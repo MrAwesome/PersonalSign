@@ -49,7 +49,8 @@ export function getBarCharacter(percentage: number): string {
 }
 
 export function degreeToArrow(degree: number): string {
-    const arrows = ['↑︎', '↗️︎', '➡️︎', '↘️︎', '↓︎', '↙︎', '⬅️︎', '↖️︎'];
+    const arrows = ['\u2191', '\u2197', '\u2192', '\u2198', '\u2193', '\u2199', '\u2190', '\u2196'];
+    //'↑︎', '↗️︎', '➡️︎', '↘️︎', '↓︎', '↙︎', '⬅️︎', '↖️︎'];
     const index = Math.round(degree % 360 / 45);
     return arrows[index >= 8 ? 0 : index];
 }
@@ -74,7 +75,6 @@ export function getUserAgentInfo(uaRaw: string | undefined): UserAgentInfo {
 
     const ua: UserAgentInfo = {};
     if (uaRaw.includes("BNRV300")) {
-        console.log("From nook:", uaRaw);
         ua.skipUnicodeTextModeOverride = true;
     }
 

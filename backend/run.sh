@@ -2,6 +2,10 @@
 
 cd "$(dirname "$0")" || exit 1
 
+if command -v yarnpkg &>/dev/null; then
+    alias yarn=yarnpkg
+fi
+
 yarn || exit 1
 
 while :; do

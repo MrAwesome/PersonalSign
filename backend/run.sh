@@ -5,7 +5,8 @@ cd "$(dirname "$0")" || exit 1
 yarn || exit 1
 
 while :; do
-    git pull --rebase --autostash
+    git fetch origin main
+    git reset --hard origin/main
 
     yarn run ts-node src/index.ts
 

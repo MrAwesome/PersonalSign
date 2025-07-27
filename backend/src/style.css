@@ -53,6 +53,7 @@ table th {
     padding-right: 8px;
     font-style: italic;
     font-size: 24px;
+    vertical-align: middle;
 }
 
 .bigbold {
@@ -121,10 +122,14 @@ table th {
 .hourly-temps {
     margin-top: 5px;
     display: inline-block;
-    border: 1px solid #333333;
     font-size: 24px;
-    padding: 2px 6px;
-    line-height: 1;
+    vertical-align: middle;
+}
+
+.daily-temps {
+    display: inline-block;
+    font-size: 24px;
+    vertical-align: middle;
 }
 
 .daily-temp-display {

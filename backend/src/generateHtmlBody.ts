@@ -1,5 +1,5 @@
 import {CityData, ImperialOrMetric, UserAgentInfo} from "./types";
-import {AirPollution, DailyTemperatures, Everything as WeatherEverything} from "openweather-api-node";
+import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
 import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow, noop, getDateAsTimeDay} from "./utils";
 import {find as geofind} from "geo-tz";
 
@@ -26,13 +26,13 @@ export class HtmlBodyGenerator {
         this.getIconsNext12Hours = this.getIconsNext12Hours.bind(this);
         this.generateHtmlBody = this.generateHtmlBody.bind(this);
         this.getTempNext12Hours = this.getTempNext12Hours.bind(this);
-        this.getDailyTempDisplay = this.getDailyTempDisplay.bind(this);
+        this.getTempNext3Days = this.getTempNext3Days.bind(this);
         noop(this.ua);
     }
 
     generateHtmlBody(): string {
         const {cityData, weatherData, currentAirPollutionData} = this;
-        const {current, minutely, daily} = weatherData;
+        const {current, minutely} = weatherData;
 
         const currentWeather = current.weather;
 
@@ -68,16 +68,16 @@ export class HtmlBodyGenerator {
         const windDirectionIndicator = degreeToArrow(currentWeather.wind.deg)
         //const arrowEmojiSuffix = ua.skipUnicodeTextModeOverride === true ? "" : "\uFE0E";
 
-        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator} <br />`;
-
         let windGustText = '';
         if (currentWeather.wind.gust) {
             const windGustNum = currentWeather.wind.gust * windSpeedMultiplier;
-            windGustText = currentWeather.wind.gust ? `%P% Wind Gust: %PP% ${windGustNum.toFixed(0)}${windUnit} <br />` : '';
+            windGustText = currentWeather.wind.gust ? `&nbsp;%P%(Gust:%PP%${windGustNum.toFixed(0)}${windUnit}%P%)%PP%` : '';
         }
 
+        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator} ${windGustText}<br />`;
+
         let positivePrecip = false;
-        const upcomingPrecipitation = [0,10,30].map(i => {
+        const upcomingPrecipitation = [0, 10, 30].map(i => {
             const precip = minutely[i]?.weather?.rain ?? 0;
             if (precip >= 0.1) {
                 positivePrecip = true;
@@ -103,8 +103,7 @@ export class HtmlBodyGenerator {
 
         const tempNext12Hours = this.getTempNext12Hours();
 
-        const tempRangeToday = this.getDailyTempDisplay(daily[0].weather.temp);
-        const tempRangeTomorrow = this.getDailyTempDisplay(daily[1].weather.temp);
+        const tempNext3Days = this.getTempNext3Days();
 
         let alertText = ""
         if ("alerts" in weatherData) {
@@ -137,7 +136,6 @@ export class HtmlBodyGenerator {
                 %P% Humidity: %PP% ${currentWeather.humidity}% <br />
                 %P% AQI: %PP% ${currentAirPollutionData.aqiName} %P%(PM2.5: %PP%${currentAirPollutionData.components.pm2_5}%P%)%PP% <br />
                 ${windSpeedText}
-                ${windGustText}
                 %P% Pressure: %PP% ${pressureVariancePercent} <br />
 
                 ${precipNextHour}
@@ -145,10 +143,11 @@ export class HtmlBodyGenerator {
 
                 <br />
 
-                %P% Today: %PP% ${daily[0].weather.description} ${tempRangeToday} <br />
-                %P% Tomorrow: %PP% ${daily[1].weather.description} ${tempRangeTomorrow} <br />
-
                 ${tempNext12Hours}
+
+                <br />
+
+                ${tempNext3Days}
 
                 ${alertText}
 
@@ -198,26 +197,25 @@ export class HtmlBodyGenerator {
         `;
     }
 
-    getDailyTempDisplay(temps: DailyTemperatures): string {
-        const {min, max} = temps;
+    getTempNext3Days(): string {
+        const {weatherData} = this;
+        const {daily} = weatherData;
+        let temps = daily.slice(0, 3).map(({weather}) => {
+            const {min, max} = weather.temp;
 
-        const tempDisplay = [
-            min.toFixed(0),
-            max.toFixed(0),
-            //morn.toFixed(0),
-            //day.toFixed(0),
-            //eve.toFixed(0),
-            //night.toFixed(0),
-        ].join('-');
+            return `<td>${min.toFixed(0)}°/${max.toFixed(0)}°</td>`;
+        });
 
-        return `<div class="daily-temp-display">(${tempDisplay})</div>`;
+        const tempDisplay = temps.join("");
+
+        return `<div style="display: inline-block;">%P%Next 3 days: %PP%<table class="daily-temps"><tr>${tempDisplay}</tr></table></div>`;
+
     }
 
     getTempNext12Hours(): string {
         const {weatherData} = this;
         const {hourly} = weatherData;
 
-        // Don't bother showing the current hour if it's almost over
         const now = new Date();
         let startHour = 0;
         let endHour = 12;
@@ -233,10 +231,13 @@ export class HtmlBodyGenerator {
         const topRow = temps.slice(0, 6);
         const bottomRow = temps.slice(6, 12);
 
-        const tempsRows = [topRow, bottomRow].map(x => x.join(', ')).join('<br />');
+        const makeRow = (row: string[]) =>
+            `<tr>${row.map(t => `<td>${t}°</td>`).join('')}</tr>`;
 
-        return `%P% Next 12 hours: %PP% <div class="hourly-temps">${tempsRows}</div>`;
+        const table =
+            `<table class="hourly-temps">${makeRow(topRow)}${makeRow(bottomRow)}</table>`;
 
+        return `%P% Next 12 hours: %PP% ${table}`;
     }
 
     getIconsNext12Hours(): string {

@@ -1,0 +1,14 @@
+[Unit]
+Description=Persistent weather session inside tmux
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/tmux new-session -d -s weather ~/bin/run_weather.sh
+ExecStop=/usr/bin/tmux kill-session -t weather
+Restart=on-failure
+RestartSec=600
+
+[Install]
+WantedBy=default.target

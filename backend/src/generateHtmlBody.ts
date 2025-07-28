@@ -13,6 +13,7 @@ import {find as geofind} from "geo-tz";
 //    console.log((Date.now() - now) / 1000);
 //    console.log(res);
 //});
+const PRECIP_BAR_FULL_THRESHOLD_MM = 4.0 as const;
 
 export class HtmlBodyGenerator {
     constructor(
@@ -23,6 +24,7 @@ export class HtmlBodyGenerator {
         private imperialOrMetric: ImperialOrMetric,
     ) {
         this.getPrecipitationChanceNext48HoursOnlyBars = this.getPrecipitationChanceNext48HoursOnlyBars.bind(this);
+        this.getPrecipitationAmountNext48HoursOnlyBars = this.getPrecipitationAmountNext48HoursOnlyBars.bind(this);
         this.getIconsNext12Hours = this.getIconsNext12Hours.bind(this);
         this.generateHtmlBody = this.generateHtmlBody.bind(this);
         this.getTempNext12Hours = this.getTempNext12Hours.bind(this);
@@ -58,6 +60,7 @@ export class HtmlBodyGenerator {
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
         const precipTable = this.getPrecipitationChanceNext48HoursOnlyBars();
+        const precipAmtTable = this.getPrecipitationAmountNext48HoursOnlyBars();
 
         const windUnit = this.imperialOrMetric === 'imperial' ? 'mph' : 'km';
 
@@ -111,7 +114,7 @@ export class HtmlBodyGenerator {
             if (weatherData.alerts !== undefined && weatherData.alerts.length > 0) {
                 alertText += `<table class="alerts">
                 <th>Alert</th>
-                <th>Ends</th>
+                <th>Until</th>
                 `;
 
                 for (const a of weatherData.alerts) {
@@ -141,6 +144,7 @@ export class HtmlBodyGenerator {
 
                 ${precipNextHour}
                 ${precipTable}
+                ${precipAmtTable}
 
                 <br />
 
@@ -212,6 +216,42 @@ export class HtmlBodyGenerator {
         `;
     }
 
+    getPrecipitationAmountNext48HoursOnlyBars(): string {
+        const hourInterval = 6;
+        const {weatherData} = this;
+        const {hourly} = weatherData;
+
+        if (hourly.map(h => getPrecipAmountBarPercent(Math.max(h.weather.rain, h.weather.snow))).every(checkAboveBarThreshold)) {
+            return '';
+        }
+
+        const barchart = hourly
+            .map(({weather}) => {
+                const precipmm = Math.max(weather.rain, weather.snow);
+                const barPercent = getPrecipAmountBarPercent(precipmm);
+                return getBarCharacter(barPercent);
+            })
+            .join('');
+
+        const labelsUnpadded = hourly
+            .filter((_e, index) => {return mod(index, hourInterval) === 0;})
+            .map(({dt}) => getAMPMHourOnly(dt));
+        const [firstLabel, ...restLabels] = labelsUnpadded;
+        const fixedRestLabels = restLabels
+            .map((l) => l.padStart(hourInterval, 'x'))
+            .join('')
+            .replace(/x/g, "&nbsp;");
+
+        const fixedLabels = `${firstLabel}${fixedRestLabels}`;
+
+        return `
+            <div class="precipitation-graph">
+                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours:</div>
+                <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
+            </div>
+        `;
+    }
+
     getTempNext3Days(): string {
         const {weatherData} = this;
         const {daily} = weatherData;
@@ -224,7 +264,6 @@ export class HtmlBodyGenerator {
         const tempDisplay = temps.join("");
 
         return `<table class="daily-temps"><tr>${tempDisplay}</tr></table>`;
-
     }
 
     getTempNext12Hours(): string {
@@ -264,3 +303,9 @@ export class HtmlBodyGenerator {
     }
 }
 
+
+function getPrecipAmountBarPercent(precipmm: number) {
+    const rawPct = (precipmm / PRECIP_BAR_FULL_THRESHOLD_MM);
+    const clamped = Math.min(1, rawPct);
+    return clamped;
+}

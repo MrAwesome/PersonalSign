@@ -34,7 +34,7 @@ export class HtmlBodyGenerator {
 
     generateHtmlBody(): string {
         const {cityData, weatherData, currentAirPollutionData} = this;
-        const {current, minutely} = weatherData;
+        const {current, minutely, daily} = weatherData;
 
         const currentWeather = current.weather;
 
@@ -62,6 +62,8 @@ export class HtmlBodyGenerator {
         const precipTable = this.getPrecipitationChanceNext48HoursOnlyBars();
         const precipAmtTable = this.getPrecipitationAmountNext48HoursOnlyBars();
 
+        const todayHighLow = `${daily[0].weather.temp.max.toFixed(0)}°/${daily[0].weather.temp.min.toFixed(0)}°`;
+
         const windUnit = this.imperialOrMetric === 'imperial' ? 'mph' : 'km';
 
         // 1m/s = 3.6km/h
@@ -75,10 +77,10 @@ export class HtmlBodyGenerator {
         let windGustText = '';
         if (currentWeather.wind.gust) {
             const windGustNum = currentWeather.wind.gust * windSpeedMultiplier;
-            windGustText = currentWeather.wind.gust ? `&nbsp;%P%(Gust:%PP%${windGustNum.toFixed(0)}${windUnit}%P%)%PP%` : '';
+            windGustText = currentWeather.wind.gust ? `%P%Gust:%PP%</td><td class="lowpri right">${windGustNum.toFixed(0)}${windUnit}` : '';
         }
 
-        const windSpeedText = `%P% Wind Speed: %PP% ${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator} ${windGustText}<br />`;
+        const windSpeedText = `${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator}`;
 
         let positivePrecip = false;
         const upcomingPrecipitation = [0, 10, 30].map(i => {
@@ -136,11 +138,24 @@ export class HtmlBodyGenerator {
                 </div>
             </div>
             <div>
-                %P% Temp: %PP% %B%${currentWeather.temp.cur.toFixed(0)}%DEG%%BB% %P%(Feels Like:%PP%${currentWeather.feelsLike.cur.toFixed(0)}%DEG%%P%)%PP% <br />
-                %P% Humidity: %PP% ${currentWeather.humidity}% <br />
-                %P% AQI: %PP% ${currentAirPollutionData.aqiName} %P%(PM2.5: %PP%${currentAirPollutionData.components.pm2_5}%P%)%PP% <br />
-                ${windSpeedText}
-                %P% Pressure: %PP% ${pressureVariancePercent} <br />
+                <table class="outer-main-table">
+                <tr>
+                    <td> %P% Temp: %PP%</td><td>%B%${currentWeather.temp.cur.toFixed(0)}%DEG%%BB%</td>
+                    <td>%P%Feels Like:%PP%</td><td class="right">${currentWeather.feelsLike.cur.toFixed(0)}%DEG%</td>
+                </tr>
+                <tr>
+                    <td>%P% Today H/L: %PP%</td><td class="lowpri right">${todayHighLow}</td>
+                    <td>%P% Humidity: %PP%</td><td class="lowpri">${currentWeather.humidity}%</td>
+                </tr>
+                <tr>
+                    <td>%P% Pressure: %PP%</td><td class="lowpri">${pressureVariancePercent}</td>
+                    <td>%P%PM2.5: %PP%</td><td class="lowpri right">${currentAirPollutionData.components.pm2_5}</td>
+                <tr>
+                    <td>%P%Wind:%PP%</td><td class="lowpri">${windSpeedText}</td>
+                    <td>${windGustText}</td>
+                </tr>
+                </table>
+
 
                 ${precipNextHour}
                 ${precipTable}
@@ -210,7 +225,7 @@ export class HtmlBodyGenerator {
 
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Chance Next 48 Hours:</div>
+                <div class="precipitation-graph-header">Precipitation Chance:</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
@@ -246,7 +261,7 @@ export class HtmlBodyGenerator {
 
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours:</div>
+                <div class="precipitation-graph-header">Precipitation Amount:</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
@@ -255,7 +270,7 @@ export class HtmlBodyGenerator {
     getTempNext3Days(): string {
         const {weatherData} = this;
         const {daily} = weatherData;
-        let temps = daily.slice(0, 3).map(({weather}) => {
+        let temps = daily.slice(1, 4).map(({weather}) => {
             const {min, max} = weather.temp;
 
             return `<td>${max.toFixed(0)}°/${min.toFixed(0)}°</td>`;

@@ -1,7 +1,8 @@
 body {
     background: white;
     color: black;
-    font-size: 46px;
+    font-size: 52px;
+    margin-top: 0;
 }
 
 /*
@@ -25,7 +26,7 @@ table{
 
 table td {
     border: 1px solid #333333;
-    padding: 8px;
+    padding: 6px;
     line-height: 1;
 }
 
@@ -46,6 +47,7 @@ table th {
     text-align: center;
     font-size: 48px;
     font-weight: bold;
+    line-height: 1;
 }
 
 .lilmage {
@@ -64,9 +66,8 @@ table th {
 
 .prefix {
     display: inline-block;
-    padding-right: 8px;
     font-style: italic;
-    font-size: 24px;
+    font-size: 20px;
     vertical-align: middle;
 }
 
@@ -98,6 +99,7 @@ table th {
 }
 
 .precipitation-graph {
+    margin-top: 2px;
     border: 1px solid #333333;
     display: inline-block;
 }
@@ -121,6 +123,25 @@ table th {
     margin-left: -10px;
 }
 
+table.outer-main-table {
+    border: none;
+    margin: 0 auto;
+}
+
+table.outer-main-table > tbody > tr > th,
+table.outer-main-table > tbody > tr > td
+{
+    border: none;
+    padding: 0px 16px;
+}
+
+.right {
+}
+
+.lowpri {
+    font-size: 36px;
+}
+
 table.outer-temps-table {
     border: none;
 }
@@ -129,11 +150,11 @@ table.outer-temps-table > tbody > tr > th,
 table.outer-temps-table > tbody > tr > td
 {
     border: none;
+    padding: 0px;
 }
 
 .hourly-temps {
     line-height: 1;
-    margin-top: 5px;
     display: inline-block;
     font-size: 24px;
     vertical-align: middle;
@@ -153,7 +174,7 @@ table.outer-temps-table > tbody > tr > td
 }
 
 .alerts {
-    margin-top: 10px;
+    margin-top: 5px;
     font-size: 24px;
     line-height: 1;
 }

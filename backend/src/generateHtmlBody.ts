@@ -1,6 +1,6 @@
 import {CityData, ImperialOrMetric, UserAgentInfo} from "./types";
 import {AirPollution, Everything as WeatherEverything} from "openweather-api-node";
-import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow, noop, getDateAsTimeDay} from "./utils";
+import {calculatePressureVariancePercent, getBarCharacter, getAMPMHourOnly, mod, checkAboveBarThreshold, getOWIconURL, degreeToArrow, noop, getDateAsTimeDay, roundDateToNearestTenMinutes} from "./utils";
 import {find as geofind} from "geo-tz";
 
 
@@ -50,9 +50,10 @@ export class HtmlBodyGenerator {
         const monthAndDay = now
             .toLocaleDateString('en-US', {month: 'short', day: 'numeric', timeZone});
 
-        const hoursAndMin = now
-            .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', timeZone})
-            .replace(/\s/g, ' ')
+        const hoursAndMin =
+            roundDateToNearestTenMinutes(now)
+                .toLocaleTimeString('en-US', {hour: 'numeric', minute: 'numeric', timeZone})
+                .replace(/\s/g, ' ')
 
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
@@ -143,11 +144,25 @@ export class HtmlBodyGenerator {
 
                 <br />
 
-                ${tempNext12Hours}
+                <table class="outer-temps-table">
+                <tr>
+                    <td>
+                    %P% Next 12 hours: %PP% 
+                    </td>
+                    <td>
+                    ${tempNext12Hours}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    %P%Next 3 days: %PP%
+                    </td>
+                    <td>
+                    ${tempNext3Days}
+                    </td>
 
-                <br />
-
-                ${tempNext3Days}
+                </tr>
+                </table>
 
                 ${alertText}
 
@@ -203,12 +218,12 @@ export class HtmlBodyGenerator {
         let temps = daily.slice(0, 3).map(({weather}) => {
             const {min, max} = weather.temp;
 
-            return `<td>${min.toFixed(0)}°/${max.toFixed(0)}°</td>`;
+            return `<td>${max.toFixed(0)}°/${min.toFixed(0)}°</td>`;
         });
 
         const tempDisplay = temps.join("");
 
-        return `<div style="display: inline-block;">%P%Next 3 days: %PP%<table class="daily-temps"><tr>${tempDisplay}</tr></table></div>`;
+        return `<table class="daily-temps"><tr>${tempDisplay}</tr></table>`;
 
     }
 
@@ -234,10 +249,7 @@ export class HtmlBodyGenerator {
         const makeRow = (row: string[]) =>
             `<tr>${row.map(t => `<td>${t}°</td>`).join('')}</tr>`;
 
-        const table =
-            `<table class="hourly-temps">${makeRow(topRow)}${makeRow(bottomRow)}</table>`;
-
-        return `%P% Next 12 hours: %PP% ${table}`;
+        return `<table class="hourly-temps">${makeRow(topRow)}${makeRow(bottomRow)}</table>`;
     }
 
     getIconsNext12Hours(): string {
@@ -250,32 +262,5 @@ export class HtmlBodyGenerator {
 
         return `<div class="hourly-icons">${icons.join('')}</div>`;
     }
-
-
-    //    getPrecipitationChanceNext12Hours(): string {
-    //        const {weatherData} = this;
-    //        const {hourly} = weatherData;
-    //        const percipHourlyTable = hourly; //.slice(0, 12);
-    //
-    //        //const tableHeader = `<table><tr><th>Hour</th><th>Precipitation</th></tr>`;
-    //        const tableHeader = `<table class="precipitation-graph">`;
-    //        const tableFooter = `</table>`;
-    //        let table = tableHeader;
-    //
-    //        table += '<tr>';
-    //        const data = percipHourlyTable.map((h) => {
-    //            return {date: getDate(h.dt), pop: h.pop}
-    //        });
-    //
-    //        table += data.map(({date}) => `<td>${getAMPMHourOnly(date)}</td>`).join('');
-    //        table += `</tr>`;
-    //        table += '<tr>';
-    //        table += data.map(({pop}) => `<td>${getBarCharacter(pop)}</td>`).join('');
-    //
-    //        table += `</tr>`;
-    //        table += tableFooter;
-    //        return table;
-    //    }
-
 }
 

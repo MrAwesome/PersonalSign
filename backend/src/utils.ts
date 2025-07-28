@@ -30,7 +30,7 @@ export function getDateWithOffset(dt: number, timezone_offset: number): Date {
 export function getDateAsTimeDay(dt: number): string {
     const a = new Date(dt * 1000);
     let hour = a.getHours();
-    const month = a.toLocaleString('default', { month: 'short' });
+    const month = a.toLocaleString('default', {month: 'short'});
     const day = a.getDate();
     const ampm = hour >= 12 ? 'pm' : 'am';
     hour = hour % 12;
@@ -104,4 +104,20 @@ export async function tryProm<T>(fn: () => Promise<T>): Promise<T | ReturnedErro
 
 export function getOWIconURL(icon: string): string {
     return `http://openweathermap.org/img/wn/${icon}.png`;
+}
+
+
+export function roundDateToNearestTenMinutes(date: Date): Date {
+    const result = new Date(date.getTime());
+    const mins = result.getMinutes();
+    const rounded = Math.round(mins / 10) * 10;
+
+    if (rounded === 60) {
+        // Zero minutes and advance one hour
+        result.setHours(result.getHours() + 1);
+        result.setMinutes(0, 0, 0);
+    } else {
+        result.setMinutes(rounded, 0, 0);
+    }
+    return result;
 }

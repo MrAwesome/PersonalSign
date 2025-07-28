@@ -34,6 +34,20 @@ table th {
     font-style: italic;
 }
 
+.heading {
+    display: inline-block;
+    border-bottom: 1px solid #666666;
+    margin-bottom: 3px;
+    padding-bottom: 5px;
+    width: 100%;
+}
+
+.datetime-heading {
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+}
+
 .lilmage {
     border: 1px solid #333333;
     background: lightgrey;
@@ -73,19 +87,6 @@ table th {
 
 .weathertable, .munitable, .barttable {
     padding-top: 8px;
-}
-
-.heading {
-    display: inline-block;
-    border-bottom: 1px solid #666666;
-    margin-bottom: 3px;
-    padding-bottom: 5px;
-}
-
-.datetime-heading {
-    font-size: 64px;
-    font-weight: bold;
-    line-height: 1;
 }
 
 .city-heading {

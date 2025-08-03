@@ -99,6 +99,8 @@ table th {
 }
 
 .precipitation-graph {
+    width: 100%;
+    margin: 0 auto;
     margin-top: 2px;
     border: 1px solid #333333;
     display: inline-block;
@@ -132,7 +134,7 @@ table.outer-main-table > tbody > tr > th,
 table.outer-main-table > tbody > tr > td
 {
     border: none;
-    padding: 0px 16px;
+    padding: 0px 14px;
 }
 
 .right {
@@ -177,4 +179,25 @@ table.outer-temps-table > tbody > tr > td
     margin-top: 5px;
     font-size: 24px;
     line-height: 1;
+}
+
+.histogram {
+    height: 40px;
+    font-size: 0;
+    line-height: 0;
+}
+
+.histogram span {
+    display: inline-block;
+    width: 10px;
+    background: #000000;
+    vertical-align: bottom;
+}
+
+.wide-border {
+    border: 2px solid black;
+}
+
+.bolded {
+    font-weight: bold;
 }

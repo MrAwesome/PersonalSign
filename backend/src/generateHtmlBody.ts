@@ -29,12 +29,13 @@ export class HtmlBodyGenerator {
         this.generateHtmlBody = this.generateHtmlBody.bind(this);
         this.getTempNext12Hours = this.getTempNext12Hours.bind(this);
         this.getTempNext3Days = this.getTempNext3Days.bind(this);
+        this.getPrecipNextHour = this.getPrecipNextHour.bind(this);
         noop(this.ua);
     }
 
     generateHtmlBody(): string {
         const {cityData, weatherData, currentAirPollutionData} = this;
-        const {current, minutely, daily} = weatherData;
+        const {current, daily} = weatherData;
 
         const currentWeather = current.weather;
 
@@ -59,8 +60,9 @@ export class HtmlBodyGenerator {
 
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
-        const precipTable = this.getPrecipitationChanceNext48HoursOnlyBars();
-        const precipAmtTable = this.getPrecipitationAmountNext48HoursOnlyBars();
+        const precipNextHour = this.getPrecipNextHour();
+        const precipChanceTable48Hours = this.getPrecipitationChanceNext48HoursOnlyBars();
+        const precipAmountTable48Hours = this.getPrecipitationAmountNext48HoursOnlyBars();
 
         const todayHighLow = `${daily[0].weather.temp.max.toFixed(0)}°/${daily[0].weather.temp.min.toFixed(0)}°`;
 
@@ -81,31 +83,6 @@ export class HtmlBodyGenerator {
         }
 
         const windSpeedText = `${windSpeedNum.toFixed(0)}${windUnit} ${windDirectionIndicator}`;
-
-        let positivePrecip = false;
-        const upcomingPrecipitation = [0, 10, 30].map(i => {
-            const precip = minutely[i]?.weather?.rain ?? 0;
-            if (precip >= 0.1) {
-                positivePrecip = true;
-            }
-
-            return {
-                minAway: i,
-                amountMm: precip.toFixed(1),
-            }
-        });
-
-        let precipNextHour = '';
-        if (positivePrecip) {
-            const precipNextHourAmount = upcomingPrecipitation.map(({amountMm}) => {
-                return `${amountMm}`;
-            }).join('/');
-            const precipNextHourMin = upcomingPrecipitation.map(({minAway}) => {
-                return `${minAway}`;
-            }).join('/');
-            //precipNextHour = `%P% Now/10/30: %PP% ${precipNow}mm/${precipTen}mm/${precipThirty}mm <br />`;
-            precipNextHour = `%P% Precipitation ${precipNextHourMin}min (mm): %PP% ${precipNextHourAmount} <br />`;
-        }
 
         const tempNext12Hours = this.getTempNext12Hours();
 
@@ -158,15 +135,15 @@ export class HtmlBodyGenerator {
 
 
                 ${precipNextHour}
-                ${precipTable}
-                ${precipAmtTable}
+                ${precipChanceTable48Hours}
+                ${precipAmountTable48Hours}
 
                 <br />
 
                 <table class="outer-temps-table">
                 <tr>
                     <td>
-                    %P% Next 12 hours: %PP% 
+                    %P% Next 12 hours:&nbsp;&nbsp;%PP% 
                     </td>
                     <td>
                     ${tempNext12Hours}
@@ -225,7 +202,7 @@ export class HtmlBodyGenerator {
 
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Chance:</div>
+                <div class="precipitation-graph-header">Precipitation Chance Next 48 Hours:</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
@@ -261,7 +238,7 @@ export class HtmlBodyGenerator {
 
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Amount:</div>
+                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours:</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
@@ -315,6 +292,36 @@ export class HtmlBodyGenerator {
             .map(({weather}) => `<img class="hourly-icon" src="${getOWIconURL(weather.icon.raw)}" />`);
 
         return `<div class="hourly-icons">${icons.join('')}</div>`;
+    }
+
+    getPrecipNextHour(): string {
+        const {weatherData} = this;
+        const {minutely} = weatherData;
+        const bar_height = 40; //px
+
+        let positivePrecip = false;
+        let output = '<div class="histogram">';
+        minutely.forEach((m) => {
+            const precip = m?.weather?.rain ?? 0;
+            let height = 0;
+            if (precip >= 0.1) {
+                positivePrecip = true;
+                height = getPrecipAmountBarPercent(precip) * bar_height;
+            }
+
+            output += `<span style="height: ${height}px"></span>`;
+        });
+
+        if (positivePrecip) {
+            output += '</div>';
+
+            return `<div class="precipitation-graph wide-border">
+                <div class="precipitation-graph-header bolded">Precipitation Amount Next Hour:</div>
+                <div class="precipitation-graph-data">${output}</div>
+            </div>`;
+        } else {
+            return '';
+        }
     }
 }
 

@@ -61,7 +61,7 @@ export class HtmlBodyGenerator {
         const pressureVariancePercent = calculatePressureVariancePercent(currentWeather.pressure);
 
         const precipNextHour = this.getPrecipNextHour();
-        const precipChanceTable48Hours = this.getPrecipitationChanceNext48HoursOnlyBars();
+        //const precipChanceTable48Hours = this.getPrecipitationChanceNext48HoursOnlyBars();
         const precipAmountTable48Hours = this.getPrecipitationAmountNext48HoursOnlyBars();
 
         const todayHighLow = `${daily[0].weather.temp.max.toFixed(0)}°/${daily[0].weather.temp.min.toFixed(0)}°`;
@@ -114,7 +114,7 @@ export class HtmlBodyGenerator {
                     <div class="city-heading">${cityData.displayName}</div>
                 </div>
             </div>
-            <div>
+            <div class="body-container">
                 <table class="outer-main-table">
                 <tr>
                     <td> %P% Temp: %PP%</td><td>%B%${currentWeather.temp.cur.toFixed(0)}%DEG%%BB%</td>
@@ -135,7 +135,6 @@ export class HtmlBodyGenerator {
 
 
                 ${precipNextHour}
-                ${precipChanceTable48Hours}
                 ${precipAmountTable48Hours}
 
                 <br />
@@ -298,10 +297,12 @@ export class HtmlBodyGenerator {
         const {weatherData} = this;
         const {minutely} = weatherData;
         const bar_height = 40; //px
+        const bar_width = 9; //px
+        const outer_width = bar_width * 60;
 
         let positivePrecip = false;
-        let output = '<div class="histogram">';
-        minutely.forEach((m) => {
+        let output = `<div class="histogram" style="width: ${outer_width}px;">`;
+        minutely.forEach((m, i) => {
             const precip = m?.weather?.rain ?? 0;
             let height = 0;
             if (precip >= 0.1) {
@@ -309,13 +310,13 @@ export class HtmlBodyGenerator {
                 height = getPrecipAmountBarPercent(precip) * bar_height;
             }
 
-            output += `<span style="height: ${height}px"></span>`;
+            output += `<span style="height: ${height}px; left: ${i * bar_width}px; width: ${bar_width}px;"></span>`;
         });
 
         if (positivePrecip) {
             output += '</div>';
 
-            return `<div class="precipitation-graph wide-border">
+            return `<div class="precipitation-graph hourly-precipitation-graph">
                 <div class="precipitation-graph-header bolded">Precipitation Amount Next Hour:</div>
                 <div class="precipitation-graph-data">${output}</div>
             </div>`;

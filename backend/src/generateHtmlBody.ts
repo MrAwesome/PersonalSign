@@ -242,7 +242,7 @@ export class HtmlBodyGenerator {
 
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours: (${totalString})</div>
+                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours: (<b>${totalString}</b>)</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
@@ -326,7 +326,7 @@ export class HtmlBodyGenerator {
             const totalString = `${total.toFixed(1)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
 
             return `<div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Amount Next Hour: (${totalString})</div>
+                <div class="precipitation-graph-header">Precipitation Amount Next Hour: (<b>${totalString}</b>)</div>
                 <div class="precipitation-graph-data">${output}</div>
             </div>`;
         } else {

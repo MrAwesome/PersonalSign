@@ -13,6 +13,7 @@ while :; do
     git fetch origin main
     git reset --hard origin/main
 
+    $yarncmd
     $yarncmd run ts-node src/index.ts
 
     echo "Server was shut down, restarting..."

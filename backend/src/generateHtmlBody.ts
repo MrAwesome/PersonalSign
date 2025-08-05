@@ -216,9 +216,11 @@ export class HtmlBodyGenerator {
             return '';
         }
 
+        let total = 0;
         const barchart = hourly
             .map(({weather}) => {
-                const precipmm = Math.max(weather.rain, weather.snow);
+                const precipmm = weather.rain + weather.snow;
+                total += precipmm;
                 const barPercent = getPrecipAmountBarPercent(precipmm);
                 return getBarCharacter(barPercent);
             })
@@ -235,9 +237,12 @@ export class HtmlBodyGenerator {
 
         const fixedLabels = `${firstLabel}${fixedRestLabels}`;
 
+        total = total / ((this.imperialOrMetric == 'imperial') ? 25.4 : 1);
+        const totalString = `${total.toFixed(0)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
+
         return `
             <div class="precipitation-graph">
-                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours:</div>
+                <div class="precipitation-graph-header">Precipitation Amount Next 48 Hours: (${totalString})</div>
                 <div class="precipitation-graph-data">${barchart} <br /> ${fixedLabels}</div>
             </div>
         `;
@@ -302,8 +307,10 @@ export class HtmlBodyGenerator {
 
         let positivePrecip = false;
         let output = `<div class="histogram" style="width: ${outer_width}px;">`;
+        let total = 0;
         minutely.forEach((m, i) => {
             const precip = m?.weather?.rain ?? 0;
+            total += precip;
             let height = 0;
             if (precip >= 0.1) {
                 positivePrecip = true;
@@ -315,13 +322,15 @@ export class HtmlBodyGenerator {
 
         if (positivePrecip) {
             output += '</div>';
+            total = total / ((this.imperialOrMetric == 'imperial') ? 25.4 : 1);
+            const totalString = `${total.toFixed(0)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
 
-            return `<div class="precipitation-graph hourly-precipitation-graph">
-                <div class="precipitation-graph-header bolded">Precipitation Amount Next Hour:</div>
+            return `<div class="precipitation-graph">
+                <div class="precipitation-graph-header">Precipitation Amount Next Hour: (${totalString})</div>
                 <div class="precipitation-graph-data">${output}</div>
             </div>`;
         } else {
-            return '';
+            return "";
         }
     }
 }

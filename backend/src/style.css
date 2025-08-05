@@ -107,12 +107,14 @@ table th {
 .precipitation-graph {
     margin: 0 auto;
     margin-top: 2px;
-    border: 1px solid #333333;
+    margin-bottom: 15px;
+    border: 2px solid #333333;
     display: inline-block;
 }
 
 .precipitation-graph-header {
     text-align: center;
+    font-weight: bold;
     font-size: 14px;
     border-bottom: 1px solid #333333;
     padding-bottom: 2px;
@@ -124,11 +126,6 @@ table th {
     font-family: monospace;
     font-size: 20px;
     height: auto;
-}
-
-.hourly-precipitation-graph {
-    border: 2px solid black;
-    margin-bottom: 10px;
 }
 
 .hourly-icon {
@@ -156,6 +153,7 @@ table.outer-main-table > tbody > tr > td
 
 table.outer-temps-table {
     border: none;
+    margin-left: 20px;
 }
 
 table.outer-temps-table > tbody > tr > th,

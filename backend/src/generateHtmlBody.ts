@@ -238,7 +238,7 @@ export class HtmlBodyGenerator {
         const fixedLabels = `${firstLabel}${fixedRestLabels}`;
 
         total = total / ((this.imperialOrMetric == 'imperial') ? 25.4 : 1);
-        const totalString = `${total.toFixed(0)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
+        const totalString = `${total.toFixed(1)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
 
         return `
             <div class="precipitation-graph">
@@ -323,7 +323,7 @@ export class HtmlBodyGenerator {
         if (positivePrecip) {
             output += '</div>';
             total = total / ((this.imperialOrMetric == 'imperial') ? 25.4 : 1);
-            const totalString = `${total.toFixed(0)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
+            const totalString = `${total.toFixed(1)}${((this.imperialOrMetric == 'imperial') ? '"' : 'mm')}`;
 
             return `<div class="precipitation-graph">
                 <div class="precipitation-graph-header">Precipitation Amount Next Hour: (${totalString})</div>

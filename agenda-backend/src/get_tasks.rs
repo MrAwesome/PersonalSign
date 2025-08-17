@@ -1,5 +1,4 @@
-// src/get_tasks.rs
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::Deserialize;
 use std::env;
 use std::process::Command;
@@ -11,6 +10,7 @@ struct Root {
 
 #[derive(Debug, Deserialize)]
 struct Rsp {
+    #[allow(dead_code)]
     stat: String,
     tasks: Tasks,
 }

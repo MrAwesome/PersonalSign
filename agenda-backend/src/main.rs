@@ -1,128 +1,100 @@
-use std::borrow::Cow;
 use anyhow::Result;
-use agenda_backend::{get_calendar_events::get_calendar_events, get_tasks::get_tasks};
+use std::convert::Infallible;
+use std::env;
+use std::sync::Arc;
+use std::time::Duration;
 
-fn format_date_ymd(s: &str) -> String {
-    // expect YYYY-MM-DD
-    let parts: Vec<&str> = s.split('-').collect();
-    if parts.len() != 3 {
-        return s.to_string();
+use agenda_backend::generate_html::generate_html;
+use serde::Deserialize;
+use tokio::sync::RwLock;
+use warp::{Filter, http::StatusCode, reply::Response};
+
+static TTL_SECONDS: u64 = 20 * 60; // 20 minutes
+
+struct Cache {
+    value: String,
+    expires_at: std::time::Instant,
+}
+
+impl Cache {
+    fn expired(&self) -> bool {
+        std::time::Instant::now() >= self.expires_at
     }
-    let year = parts[0];
-    let month = parts[1].parse::<usize>().ok();
-    let day = parts[2].trim_start_matches('0').parse::<u32>().ok();
-    let months = [
-        "", "January", "February", "March", "April", "May", "June", "July", "August", "September",
-        "October", "November", "December",
-    ];
-    if let (Some(m), Some(d)) = (month, day) {
-        if (1..=12).contains(&m) {
-            return format!("{} {}", months[m], d);
+}
+
+async fn get_html_text() -> Result<String> {
+    generate_html()
+}
+
+async fn get_cached_html(cache: Arc<RwLock<Cache>>) -> Result<String> {
+    {
+        let read = cache.read().await;
+        if !read.expired() {
+            return Ok(read.value.clone());
         }
     }
-    // fallback to original if parsing fails
-    format!("{}-{}-{}", year, parts.get(1).unwrap_or(&""), parts.get(2).unwrap_or(&""))
-}
 
-fn escape_html(s: &str) -> Cow<'_, str> {
-    if !s.chars().any(|c| matches!(c, '&' | '<' | '>' | '"' | '\'')) {
-        return Cow::Borrowed(s);
-    }
-    let mut out = String::with_capacity(s.len() + 8);
-    for c in s.chars() {
-        match c {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '"' => out.push_str("&quot;"),
-            '\'' => out.push_str("&#39;"),
-            other => out.push(other),
-        }
-    }
-    Cow::Owned(out)
-}
+    let new = get_html_text().await?;
 
-fn attempt() -> Result<()> {
-    let (maybe_events, maybe_tasks) = std::thread::scope(|s| {
-        let events_thread = s.spawn(get_calendar_events);
-        let tasks_thread = s.spawn(get_tasks);
-        (events_thread.join(), tasks_thread.join())
-    });
-
-    let tasks = maybe_tasks.map_err(|e| anyhow::anyhow!("{e:?}"))??;
-    let events = maybe_events.map_err(|e| anyhow::anyhow!("{e:?}"))??;
-
-    let mut days = vec!["Tomorrow", "Today"];
-
-    let mut html = String::with_capacity(8 * 1024);
-    html.push_str(
-        "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style type=\"text/css\">
-table td {
-    border: 1px solid gray;
-    font-size: 20px;
-}
-
-.event-start-time {
-    width: 55px;
-}
-
-.event-title {
-    font-weight: bold;
-}
-
-.date {
-    font-size: 28px;
-}
-
-.tasks-header {
-    font-size: 28px;
+    let mut write = cache.write().await;
+    if !write.expired() {
+        return Ok(write.value.clone());
     }
 
-.task-title {
-    font-size: 20px;
-    font-weight: bold;
-}
-         </style></head><body>",
-    );
-
-    let mut current_date = String::new();
-    for event in events {
-        if event.start_date != current_date {
-            current_date = event.start_date.clone();
-
-            let date_display = if !days.is_empty() {
-                days.pop().unwrap().to_string()
-            } else {
-                format_date_ymd(&current_date)
-            };
-            html.push_str("<div class=\"date\">");
-            html.push_str(&escape_html(&date_display));
-            html.push_str("</div>");
-        }
-
-        html.push_str("<table class=\"day\"><tr class=\"event\"><td class=\"event-start-time\">");
-        html.push_str(&escape_html(&event.start_time));
-        html.push_str("</td><td class=\"event-title\">");
-        html.push_str(&escape_html(&event.title));
-        html.push_str("</td></tr></table>");
-    }
-
-    html.push_str("<hr>");
-
-    html.push_str("<div class=\"tasks-header\">Tasks</div>");
-
-    for task in &tasks {
-        html.push_str("<div class=\"task-title\">☐&nbsp;");
-        html.push_str(&escape_html(&task.name.clone().unwrap_or_default()));
-        html.push_str("</div>");
-    }
-
-    html.push_str("</body></html>");
-    println!("{}", html);
-
-    Ok(())
+    write.value = new.clone();
+    write.expires_at = std::time::Instant::now() + Duration::from_secs(TTL_SECONDS);
+    Ok(new)
 }
 
-fn main() -> Result<()> {
-    attempt()
+#[derive(Deserialize)]
+struct QueryParams {
+    personal_key: Option<String>,
+}
+
+#[tokio::main]
+async fn main() {
+    let expected_key = env::var("PERSONAL_KEY").expect("Must set PERSONAL_KEY env variable.");
+    let cache = Arc::new(RwLock::new(Cache {
+        value: String::new(),
+        expires_at: std::time::Instant::now() - Duration::from_secs(1),
+    }));
+
+    let cache_filter = {
+        let cache = cache.clone();
+        warp::any().map(move || cache.clone())
+    };
+
+    let key_filter = warp::query::query::<QueryParams>().map(|q: QueryParams| q.personal_key);
+
+    let route = warp::get()
+        .and(warp::path::end())
+        .and(key_filter)
+        .and(cache_filter)
+        .and_then(move |key: Option<String>, cache: Arc<RwLock<Cache>>| {
+            let expected_key = expected_key.clone();
+            async move {
+                match key {
+                    Some(k) if k == expected_key => {
+                        let body = get_cached_html(cache.clone()).await;
+                        let body = match body {
+                            Ok(body) => body,
+                            Err(_) => get_cached_html(cache).await.unwrap_or("Error!".into()),
+                        };
+                        let mut resp = Response::new(body.into());
+                        resp.headers_mut().insert(
+                            warp::http::header::CONTENT_TYPE,
+                            warp::http::HeaderValue::from_static("text/html; charset=utf-8"),
+                        );
+                        Ok::<_, Infallible>(resp)
+                    }
+                    _ => {
+                        let mut resp = Response::new("Unauthorized".into());
+                        *resp.status_mut() = StatusCode::UNAUTHORIZED;
+                        Ok::<_, Infallible>(resp)
+                    }
+                }
+            }
+        });
+
+    warp::serve(route).run(([0, 0, 0, 0], 6969)).await;
 }

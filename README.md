@@ -1,2 +1,2 @@
 # PersonalSign
-A personal sign, and a way to reacquaint with PHP.
+A set of personal displays for the Nook Simple Touch.

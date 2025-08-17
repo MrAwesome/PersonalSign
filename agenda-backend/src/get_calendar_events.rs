@@ -14,7 +14,7 @@ pub struct Event {
 
 pub fn get_calendar_events() -> Result<Vec<Event>> {
     let out = Command::new("gcalcli")
-        .args(&["agenda", "today", "three days from now", "--tsv"])
+        .args(&["agenda", "today", "three days from now", "--tsv", "--nocache"])
         .output()
         .context("failed to run gcalcli")?;
 

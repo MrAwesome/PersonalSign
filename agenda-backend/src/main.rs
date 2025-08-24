@@ -78,7 +78,13 @@ async fn main() {
                         let body = get_cached_html(cache.clone()).await;
                         let body = match body {
                             Ok(body) => body,
-                            Err(_) => get_cached_html(cache).await.unwrap_or("Error!".into()),
+                            Err(_) => match get_cached_html(cache).await {
+                                Ok(x) => x,
+                                Err(err) => {
+                                    eprintln!("Error: {err:?}");
+                                    format!("Error: {err}")
+                                }
+                            }
                         };
                         let mut resp = Response::new(body.into());
                         resp.headers_mut().insert(

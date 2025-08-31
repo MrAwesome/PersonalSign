@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::process::Command;
 use anyhow::Result;
 use crate::{get_calendar_events::get_calendar_events, get_tasks::get_tasks};
 
@@ -42,6 +43,22 @@ fn escape_html(s: &str) -> Cow<'_, str> {
     Cow::Owned(out)
 }
 
+fn get_local_date_string(offset_days: i32) -> Option<String> {
+    let output = if offset_days == 0 {
+        Command::new("date").args(["+%F"]).output().ok()?
+    } else if offset_days == 1 {
+        Command::new("date").args(["-d", "tomorrow", "+%F"]).output().ok()?
+    } else if offset_days == -1 {
+        Command::new("date").args(["-d", "yesterday", "+%F"]).output().ok()?
+    } else {
+        let spec = format!("{} days", offset_days);
+        Command::new("date").args(["-d", &spec, "+%F"]).output().ok()?
+    };
+    if !output.status.success() { return None; }
+    let s = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    Some(s)
+}
+
 pub fn generate_html() -> Result<String> {
     let (maybe_events, maybe_tasks) = std::thread::scope(|s| {
         let events_thread = s.spawn(get_calendar_events);
@@ -52,7 +69,8 @@ pub fn generate_html() -> Result<String> {
     let tasks = maybe_tasks.map_err(|e| anyhow::anyhow!("{e:?}"))??;
     let events = maybe_events.map_err(|e| anyhow::anyhow!("{e:?}"))??;
 
-    let mut days = vec!["Tomorrow", "Today"];
+    let today_str = get_local_date_string(0);
+    let tomorrow_str = get_local_date_string(1);
 
     let mut html = String::with_capacity(8 * 1024);
     html.push_str(
@@ -90,8 +108,10 @@ table td {
         if event.start_date != current_date {
             current_date = event.start_date.clone();
 
-            let date_display = if !days.is_empty() {
-                days.pop().unwrap().to_string()
+            let date_display = if today_str.as_deref() == Some(&current_date[..]) {
+                "Today".to_string()
+            } else if tomorrow_str.as_deref() == Some(&current_date[..]) {
+                "Tomorrow".to_string()
             } else {
                 format_date_ymd(&current_date)
             };

@@ -126,7 +126,7 @@ export class HtmlBodyGenerator {
                 </tr>
                 <tr>
                     <td>%P% Pressure: %PP%</td><td class="lowpri">${pressureVariancePercent}</td>
-                    <td>%P%PM2.5: %PP%</td><td class="lowpri right">${currentAirPollutionData.components.pm2_5}</td>
+                    <td>%P%PM2.5: %PP%</td><td class="lowpri right">${currentAirPollutionData.components.pm2_5.toFixed(0)}</td>
                 <tr>
                     <td>%P%Wind:%PP%</td><td class="lowpri">${windSpeedText}</td>
                     <td>${windGustText}</td>

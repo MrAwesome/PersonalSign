@@ -1,0 +1,15 @@
+[Unit]
+Description=Persistent weather service
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/glenn/bin/run_weather.sh
+Restart=on-failure
+RestartSec=600
+KillMode=control-group
+WorkingDirectory=/home/glenn/bin
+
+[Install]
+WantedBy=default.target
